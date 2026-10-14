@@ -1,7 +1,7 @@
 export const meta = {
   name: 'notion-template-run',
   description: 'Shrew AI Company 노션 템플릿 생산 라인: CEO 킥오프 → 템플릿별 기획·디자인·노션 제작·검수 루프·마케팅·법무 → CEO 출고 판정 (직원 전원 Sonnet)',
-  whenToUse: '판매용 노션 템플릿을 만들 때. args: { batch, workshopPageUrl, briefs: [...], maxFixRounds?, root?, python? }',
+  whenToUse: '판매용 노션 템플릿을 만들 때. args: { batch, workshopPageUrl, briefs: [...], maxFixRounds?, root?, python? } — 리눅스 클라우드에서는 python: "python3"',
   phases: [
     { title: '대표실', detail: 'CEO 킥오프: 배치 목표, 미적 기준 확정', model: 'sonnet' },
     { title: '기획·디자인', detail: '템플릿 구조 사양서 + 노션 미적 디자인 가이드', model: 'sonnet' },
@@ -13,8 +13,8 @@ export const meta = {
 }
 
 const A = args || {}
-const ROOT = A.root || '.'
-const PY = A.python || 'python'
+const ROOT = A.root || '.'                 // 로컬: 바탕화면 폴더 / 클라우드: 저장소 체크아웃 루트
+const PY = A.python || 'python'            // 리눅스 클라우드라면 'python3'
 const BATCH = A.batch || 'notion-001'
 const WORKSHOP = A.workshopPageUrl
 const MAX_FIX = A.maxFixRounds === undefined ? 2 : A.maxFixRounds

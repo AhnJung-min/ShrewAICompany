@@ -20,9 +20,10 @@ GitHub: https://github.com/AhnJung-min/ShrewAICompany (private)
 - **생산 배치 실행** (병렬 백그라운드, 직원 전원 Sonnet): Workflow 도구로 `.claude/workflows/company-run.js` 실행
   - 예: `args: { "batch": "batch-002", "count": 4 }` → 리서처가 아이디어를 내고 CEO가 고른다
   - 예: `args: { "batch": "batch-002", "briefs": [ ... ] }` → 정해진 브리프로 생산
-  - 클라우드(리눅스)에서는 `"python": "python3"` 를 함께 넘긴다
+  - 클라우드(리눅스)에서는 `"python": "python3"` 를 함께 넘긴다 (예: `args: { "batch": "batch-002", "count": 4, "python": "python3" }`)
 - **오피스 대시보드**: 루트의 `ShrewOffice.exe` 더블클릭(서버 + 앱 창, 창 닫으면 종료) 또는 `python scripts/office_server.py` → http://127.0.0.1:8765 (서버 없이 `office/index.html`을 열면 DEMO 모드). exe 재빌드: `powershell -ExecutionPolicy Bypass -File scripts\build_office_app.ps1`
-- **노션 템플릿 배치**: `.claude/workflows/notion-template-run.js` (args: batch, workshopPageUrl, briefs)
+  - `ShrewOffice.exe`·`scripts/office_app.py`·`scripts/build_office_app.ps1`·`scripts/make_icon.py`(Pillow 필요)는 **Windows 데스크톱 전용**이다. 리눅스에서는 `python3 scripts/office_server.py` 만 쓴다.
+- **노션 템플릿 배치**: `.claude/workflows/notion-template-run.js` (args: batch, workshopPageUrl, briefs, 리눅스면 `"python": "python3"`)
 - **트래커**: `python scripts/tracker.py --help` (상품·장부·승인 대기열·월간 리포트)
 
 ## 산출물 흐름
@@ -33,7 +34,9 @@ GitHub: https://github.com/AhnJung-min/ShrewAICompany (private)
 - 클라우드 세션은 이 저장소를 클론해서 일한다. **main 에 직접 push 하지 않는다** — `cloud/<batch-or-task>` 브랜치에 커밋하고 PR을 연다. PR 머지 = 오너 승인.
 - `office/status/`, `office/events.jsonl` 은 런타임 상태라 커밋하지 않는다(.gitignore).
 - 비밀값(API 키·토큰)은 절대 커밋하지 않는다.
+- 리눅스에는 `python` 명령이 없을 수 있다. 이 문서·`docs/`·`.claude/agents/` 에 적힌 `python ...` 명령은 리눅스에서 `python3 ...` 로 실행한다(예: `python3 scripts/tracker.py --help`). ROOT 는 클론한 저장소 폴더이고 경로 구분자는 `/` 다.
+- 트래커 CSV 줄바꿈은 `.gitattributes` 가 맞춘다(저장소 LF, 체크아웃 CRLF). CSV 를 손으로 고치거나 줄바꿈을 바꾸지 않는다.
 
 ## 코드 규약
 - 시스템 스크립트(`scripts/`)는 Python 3.12 표준 라이브러리만. 상품 제작에는 python-docx, openpyxl, Pillow, matplotlib, pandas 사용 가능.
-- CSV는 UTF-8 BOM, 시간은 KST ISO-8601. 테스트: `python -m unittest discover -s tests -v`
+- CSV는 UTF-8 BOM, 시간은 KST ISO-8601. 테스트: `python -m unittest discover -s tests -v` (리눅스: `python3 -m unittest discover -s tests -v`)

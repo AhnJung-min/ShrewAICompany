@@ -1,0 +1,7 @@
+# 줄바꿈 규칙 — Windows 로컬(core.autocrlf=true)과 리눅스 클라우드가 같은 결과를 내도록
+#
+# 트래커 CSV 는 scripts/_common.py 가 CRLF 로 쓴다(엑셀 호환). 저장소에는 LF 로 두고,
+# 어느 OS 에서 체크아웃해도 작업 폴더에는 CRLF 로 꺼낸다.
+# 이 규칙이 없으면 리눅스 클론에서는 LF 헤더 뒤에 CRLF 행이 붙고(줄바꿈 혼합),
+# 다음 rewrite(set-status 등) 때 파일 전체가 CRLF 로 바뀌어 PR diff 가 통째로 바뀐 것처럼 보인다.
+tracker/*.csv text eol=crlf

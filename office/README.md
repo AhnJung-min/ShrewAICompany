@@ -7,7 +7,7 @@ AI 직원(Claude 서브에이전트) 한 명이 캐릭터 한 명이며, 부서(
 
 | 방법 | 결과 |
 |---|---|
-| `python scripts/office_server.py` → http://127.0.0.1:8765 | **LIVE** — 2초마다 `GET /api/state` 를 읽어 실제 직원 상태를 표시 |
+| `python scripts/office_server.py` (리눅스: `python3`) → http://127.0.0.1:8765 | **LIVE** — 2초마다 `GET /api/state` 를 읽어 실제 직원 상태를 표시 |
 | `office/index.html` 을 그냥 열기 (`file://`) 또는 서버가 꺼져 있을 때 | **DEMO** — 가짜 직원 18명이 일하는 시뮬레이션 + `DEMO` 배지/안내 문구. 서버가 켜지면(6초 간격으로 재시도) 자동으로 LIVE 로 전환. 반대로 LIVE 도중 연결이 끊기면 마지막 실데이터를 유지한 채 "연결 끊김"을 표시하고, **연속 3번(약 6초)** 실패해야 DEMO 로 바뀝니다 |
 
 오프라인에서도 동작합니다. 픽셀 폰트(Galmuri `2.40.3`, jsDelivr)는 선택 사항이며 못 받으면 시스템 한글 폰트/monospace 로 대체됩니다.
