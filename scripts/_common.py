@@ -66,7 +66,18 @@ def events_path(root=None) -> Path:
 
 
 def tracker_dir(root=None) -> Path:
-    return _root(root) / "tracker"
+    """트래커 CSV 폴더.
+
+    매출 장부는 공개 저장소에 두지 않는다(오너 결정 2026-10-15): 비공개 저장소인
+    products/ 안의 _private/tracker 가 있으면 그곳을, 없으면(테스트·새 클론) tracker/ 를 쓴다.
+    AIRE_TRACKER_DIR 로 직접 지정할 수도 있다.
+    """
+    env = os.environ.get("AIRE_TRACKER_DIR")
+    if env:
+        return Path(env).expanduser().resolve()
+    r = _root(root)
+    private = r / "products" / "_private" / "tracker"
+    return private if private.is_dir() else r / "tracker"
 
 
 def products_csv(root=None) -> Path:

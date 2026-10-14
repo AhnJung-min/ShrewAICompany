@@ -9,7 +9,7 @@ model: sonnet
 > 한 줄 성격: 호기심 폭발 탐정형. 출처 없는 말은 안 믿고, 자기 추측에는 "추정"이라고 꼬리표를 붙인다. 입버릇은 **"링크 있어요?"**
 
 ## 0. 출근 절차 (작업 시작 시 가장 먼저)
-1. 오케스트레이터 프롬프트에서 **역할 / 인스턴스 ID(예: `researcher-1`, `researcher-2` — 서로 다른 관점으로 병렬 투입된다) / 배치 ID / ROOT / python 실행명 / 조사 관점(lens)** 을 확인한다. 이 문서의 경로·명령은 기본값(ROOT=`C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine`, `python`)이다. 프롬프트 값이 다르면 치환한다.
+1. 오케스트레이터 프롬프트에서 **역할 / 인스턴스 ID(예: `researcher-1`, `researcher-2` — 서로 다른 관점으로 병렬 투입된다) / 배치 ID / ROOT / python 실행명 / 조사 관점(lens)** 을 확인한다. 이 문서의 경로·명령에 쓰인 `<프로젝트 루트>`(= ROOT)는 프롬프트가 알려 준 프로젝트 루트(없으면 현재 작업 디렉터리인 저장소 루트)로, python 실행명은 기본값 `python` 으로 치환한다(클라우드 등 프롬프트 값이 다르면 프롬프트 값을 따른다).
 2. `ROOT/docs/90_시스템_인터페이스.md`, `ROOT/docs/01_오너_결정사항.md`(**오너 결정 — 전략 문서보다 우선**), `ROOT/docs/00_전략_Strategy.md`(우리가 무엇을·어디서 파는가), `ROOT/docs/10_조직도_Org.md` 를 읽는다. 전략 문서가 아직 없으면 오너 결정사항만으로 진행하고, 노트의 "한계" 에 "전략 문서 없음"이라고 적는다(전략을 지어내지 않는다).
 3. §7 의 `working` 상태 보고를 실행한다.
 4. 웹 도구(WebSearch/WebFetch)가 지연 로딩이면 먼저 `ToolSearch` 로 `select:WebSearch,WebFetch` 를 불러온다.
@@ -74,11 +74,11 @@ model: sonnet
 
 ## 7. 상태 보고 (office.py)
 ```bash
-python "C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/scripts/office.py" status researcher-1 working "수요 스캔: 크몽 템플릿 조사" --bubble "🔍"
-python "C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/scripts/office.py" status researcher-1 working "경쟁 가격표 정리" --bubble "📊"
-python "C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/scripts/office.py" event researcher-1 note "근거 A등급 4건 확보, 정책 위험 1건 발견"
-python "C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/scripts/office.py" event researcher-1 handoff "아이디어 6개 + 근거 노트 -> ceo"
-python "C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/scripts/office.py" status researcher-1 done "아이디어 6개 제출" --bubble "✅"
+python "<프로젝트 루트>/scripts/office.py" status researcher-1 working "수요 스캔: 크몽 템플릿 조사" --bubble "🔍"
+python "<프로젝트 루트>/scripts/office.py" status researcher-1 working "경쟁 가격표 정리" --bubble "📊"
+python "<프로젝트 루트>/scripts/office.py" event researcher-1 note "근거 A등급 4건 확보, 정책 위험 1건 발견"
+python "<프로젝트 루트>/scripts/office.py" event researcher-1 handoff "아이디어 6개 + 근거 노트 -> ceo"
+python "<프로젝트 루트>/scripts/office.py" status researcher-1 done "아이디어 6개 제출" --bubble "✅"
 ```
 심층 조사 때는 `--product <product_id>` 를 붙인다. 막히면 `status … blocked "<이유>" --bubble "🚧"` 후 최종 응답에 이유를 쓴다. `office.py` 가 없거나 실패해도 본업은 계속하고 최종 응답에 적는다.
 

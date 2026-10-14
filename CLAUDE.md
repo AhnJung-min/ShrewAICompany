@@ -2,7 +2,13 @@
 
 이 저장소는 **AI 직원들이 판매용 디지털 상품을 만들고, 사람 오너가 승인·게시·정산하는 가상 회사**다.
 ChatDev처럼 부서(대표실·리서치·기획·디자인·제작·검수·마케팅·재무/법무)가 있고, 각 직원은 Sonnet 서브에이전트다.
-GitHub: https://github.com/AhnJung-min/ShrewAICompany (private)
+GitHub: https://github.com/AhnJung-min/ShrewAICompany (**public** — 회사 시스템만)
+비공개: https://github.com/AhnJung-min/ShrewAICompany-products (**private**) — 로컬에서는 `products/` 폴더가 이 저장소다(공개 저장소는 `products/`를 무시).
+
+## 공개 / 비공개 구분 (오너 결정 2026-10-15)
+- 공개 저장소에는 판매 파일과 오너 개인 사정(소속, 보험·세무 상황, 연락처 등)을 올리지 않는다. 커밋 작성자 이메일은 GitHub noreply 주소.
+- 판매 산출물(`products/<batch>/…`)과 비공개 운영 문서(`products/_private/`: 전략 전체본, 리서치 원본, 신청서 초안)는 `products/` 안에서 커밋하고 비공개 저장소로 push 한다.
+- 전략은 `docs/00_전략_Strategy.md`(공개 요약본)를 기본으로 읽고, 로컬에 `products/_private/00_전략_Strategy_full.md`가 있으면 그 전체본을 우선한다.
 
 ## 먼저 읽을 것
 - `docs/01_오너_결정사항.md` — 오너가 내린 결정 (전략 문서보다 우선)

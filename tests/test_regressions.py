@@ -2,7 +2,7 @@
 """QA 에서 찾아 고친 결함의 회귀 테스트 + 병렬 부하 + /api/state 계약 형태 검사.
 
 실행 (프로젝트 루트에서):  python -m unittest discover -s tests -v
-또는 어디서든:            python C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/tests/test_regressions.py -v
+또는 어디서든:            python <프로젝트 루트>/tests/test_regressions.py -v
 
 모든 테스트는 임시 폴더를 AIRE_ROOT 로 쓴다 (실제 데이터를 건드리지 않음).
 """

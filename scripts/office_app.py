@@ -18,14 +18,36 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
-if getattr(sys, "frozen", False):
-    # exe 는 프로젝트 루트에 둔다: 루트 = exe 가 있는 폴더
-    os.environ.setdefault("AIRE_ROOT", str(Path(sys.executable).resolve().parent))
-else:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
+import importlib.util
 
-import _common as C  # noqa: E402
-import office_server  # noqa: E402
+# 서버 모듈들. exe 로 실행될 때는 빌드 시점 사본 대신 프로젝트 폴더의 최신 scripts/ 를 읽는다
+# (코드를 고칠 때마다 exe 를 다시 빌드하지 않아도 되게). 디스크에 없으면 exe 안의 사본을 쓴다.
+SERVER_MODULES = ("_common", "office_chat", "office_server")
+
+
+def _load_server_modules():
+    if not getattr(sys, "frozen", False):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+    else:
+        # exe 는 프로젝트 루트에 둔다: 루트 = exe 가 있는 폴더
+        os.environ.setdefault("AIRE_ROOT", str(Path(sys.executable).resolve().parent))
+        scripts = Path(os.environ["AIRE_ROOT"]) / "scripts"
+        if (scripts / "office_server.py").is_file():
+            sys.path.insert(0, str(scripts))
+            for name in SERVER_MODULES:
+                path = scripts / f"{name}.py"
+                if not path.is_file():
+                    continue
+                spec = importlib.util.spec_from_file_location(name, path)
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[name] = module  # 먼저 등록해야 office_server 의 import _common 이 이 사본을 쓴다
+                spec.loader.exec_module(module)
+    import _common
+    import office_server
+    return _common, office_server
+
+
+C, office_server = _load_server_modules()
 
 PORT = office_server.DEFAULT_PORT
 BROWSERS = [

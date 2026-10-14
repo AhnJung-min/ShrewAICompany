@@ -4,7 +4,7 @@
 실행 (프로젝트 루트에서):
     python -m unittest discover -s tests -v
 또는 어디서든:
-    python C:/Users/dkswj_j1dfctx/Desktop/AI-Revenue-Engine/tests/test_backend.py -v
+    python <프로젝트 루트>/tests/test_backend.py -v
 
 모든 테스트는 임시 폴더를 AIRE_ROOT 로 써서 실제 데이터를 건드리지 않는다.
 """
