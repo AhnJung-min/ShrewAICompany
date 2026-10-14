@@ -1,7 +1,7 @@
 export const meta = {
   name: 'company-run',
   description: 'Shrew AI Company 생산 라인: CEO 킥오프 → 상품별 기획·디자인·제작·검수·마케팅·법무 → CEO 출고 판정 (직원 전원 Sonnet)',
-  whenToUse: '새 상품 배치를 만들 때. args: { batch: "batch-002", briefs?: [...], count?: 4, maxFixRounds?: 2, root?: ".", python?: "python" }',
+  whenToUse: '새 상품 배치를 만들 때. args: { batch: "batch-002", briefs?: [...], count?: 4, maxFixRounds?: 2, root?: ".", python?: "python" } — 리눅스 클라우드에서는 python: "python3"',
   phases: [
     { title: '대표실', detail: 'CEO 킥오프: 배치 목표와 상품 브리프 확정', model: 'sonnet' },
     { title: '기획·디자인', detail: '상품별 사양서(spec.md)와 디자인(design.md)', model: 'sonnet' },
