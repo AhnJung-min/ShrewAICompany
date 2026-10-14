@@ -117,8 +117,66 @@ b{font-weight:700}
 .tbl .ttl{overflow-wrap:anywhere}
 .tbl .sub{display:block;color:var(--dim);font-size:10px}
 .foot{margin:6px 0 0;color:var(--dim);font-size:11px;text-align:right}
+
+/* ---- 대표 명령창 (owner command chat) ---- */
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.fold{display:inline-flex;align-items:center;gap:8px;min-width:0;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer}
+.fold::before{content:"";flex:none;width:0;height:0;border:5px solid transparent;border-top-color:var(--gold);border-bottom-width:0;margin-top:1px}
+.fold[aria-expanded="false"]::before{transform:rotate(-90deg)}
+.fold:focus-visible,.cbtn:focus-visible,.cq:focus-visible,.cs:focus-visible,.cmsgs:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.card h2 .n.hot{color:var(--gold)}
+.cstat{display:flex;align-items:center;gap:6px;margin:0 0 7px;color:var(--mute);font-size:11px;min-width:0}
+.cstat i{flex:none;width:8px;height:8px;background:var(--dim)}
+.cstat span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cstat.run i{animation:blink 1s steps(2) infinite}
+.cwarn{margin:0 0 8px;padding:7px 9px;border:2px solid var(--c,var(--gold));background:rgba(0,0,0,.2);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.cwarn b{display:block;color:var(--c,var(--gold))}
+.cwarn.bad{--c:var(--red);background:rgba(232,106,106,.12)}
+.cwarn.warn{--c:var(--gold);background:rgba(242,193,78,.1)}
+.cwarn.info{--c:var(--blue);background:rgba(90,169,230,.1)}
+.cwarn .sub{display:block;margin-top:3px;color:var(--mute);font-size:11px}
+.cmsgs{display:flex;flex-direction:column;gap:7px;min-height:96px;max-height:min(320px,42vh);overflow:auto;padding:7px;background:#1a1625;border:2px solid var(--line);scrollbar-width:thin;scrollbar-color:var(--line) transparent;overscroll-behavior:contain}
+.cm{flex:none;min-width:0;max-width:92%;padding:5px 8px;font-size:12px;line-height:1.55;overflow-wrap:anywhere;word-break:keep-all}
+.cm.owner{align-self:flex-end;background:rgba(242,193,78,.14);border:1px solid rgba(242,193,78,.55)}
+.cm.claude{align-self:flex-start;background:var(--card2);border:1px solid var(--lineHi)}
+.cm.system{align-self:center;max-width:100%;padding:0 4px;color:var(--dim);font-size:11px;text-align:center}
+.cm .cb{white-space:pre-wrap;min-width:0}
+.cm .ct{display:block;margin-top:3px;color:var(--dim);font-size:10px}
+.cm.owner .ct{text-align:right}
+.cm.system .ct{display:inline;margin:0 0 0 6px}
+.cm .cpre{display:block;margin:5px 0;padding:5px 7px;max-width:100%;overflow:auto;white-space:pre;background:#120f1a;border:1px solid var(--line);color:var(--ink);font:inherit;font-size:11px;line-height:1.5;word-break:normal;overflow-wrap:normal;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.cm .cdim{color:var(--mute)}
+.cm .cur{display:inline-block;width:6px;height:11px;margin-left:3px;vertical-align:-1px;background:var(--gold);animation:blink 1s steps(2) infinite}
+.ctools{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.ctool{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 5px;border:1px solid var(--line);background:rgba(0,0,0,.2);color:var(--dim);font-size:10px;line-height:1.5}
+.cform{margin:0}
+.cquick{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 6px}
+.cq{max-width:100%;padding:1px 7px;border:1px solid var(--purple);background:rgba(0,0,0,.18);color:var(--purple);font:inherit;font-size:11px;line-height:1.5;cursor:pointer}
+.cq:hover:not(:disabled){background:rgba(169,139,232,.16)}
+.cq:disabled{opacity:.45;cursor:not-allowed}
+.cform textarea{display:block;width:100%;min-height:58px;max-height:200px;margin:0;padding:6px 8px;resize:vertical;background:#120f1a;color:var(--ink);border:2px solid var(--line);font:inherit;line-height:1.5;border-radius:0}
+.cform textarea:focus{outline:none;border-color:var(--gold)}
+.cform textarea:disabled{opacity:.55;cursor:not-allowed}
+.cform textarea::placeholder{color:var(--dim)}
+.chint{display:flex;justify-content:space-between;gap:8px;margin:3px 0 6px;color:var(--dim);font-size:10px}
+.chint .over{color:var(--gold)}
+.chint .full{color:var(--red)}
+.crow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.crow .grow{flex:1}
+.cseg{display:inline-flex}
+.cs{padding:3px 9px;border:2px solid var(--line);background:var(--card2);color:var(--mute);font:inherit;font-size:12px;cursor:pointer}
+.cs+.cs{margin-left:-2px}
+.cs.on{position:relative;border-color:var(--gold);background:rgba(242,193,78,.18);color:var(--gold)}
+.cs:disabled{opacity:.45;cursor:not-allowed}
+.cbtn{padding:3px 11px;border:2px solid var(--line);background:var(--card2);color:var(--ink);font:inherit;font-size:12px;cursor:pointer}
+.cbtn:hover:not(:disabled){border-color:var(--lineHi)}
+.cbtn.pri{background:var(--gold);border-color:#b88a1d;color:#2b2233;font-weight:700}
+.cbtn.pri:hover:not(:disabled){background:#ffd36b}
+.cbtn:disabled{opacity:.45;cursor:not-allowed}
+@media (pointer:coarse){.cbtn,.cs{min-height:36px}.cq{min-height:30px;padding:1px 9px}}
+
 @media (max-width:520px){.top{padding:8px 10px}.layout{padding:0 8px 24px}.kpi .v{font-size:16px}}
-@media (prefers-reduced-motion:reduce){.badge,.ribbon,.badge.live::before{animation:none}}
+@media (prefers-reduced-motion:reduce){.badge,.ribbon,.badge.live::before,.cm .cur,.cstat.run i{animation:none}}
 </style>
 </head>
 <body>
@@ -143,6 +201,26 @@ b{font-weight:700}
   </section>
 
   <aside class="panel" aria-label="경영 현황">
+    <section class="card" id="cardChat" aria-label="대표 명령창">
+      <h2><button type="button" class="fold" id="chatFold" aria-expanded="true" aria-controls="chatBody">대표 명령창 <small>Command</small></button><span class="n" id="chatBadge"></span></h2>
+      <div id="chatBody">
+        <div class="cstat" id="chatStatus"><i></i><span>연결 확인 중…</span></div>
+        <div class="cwarn" id="chatWarn" aria-live="polite" hidden></div>
+        <div class="cmsgs" id="chatMsgs" role="log" aria-live="off" aria-label="대화 기록" tabindex="0"></div>
+        <form class="cform" id="chatForm" autocomplete="off">
+          <div class="cquick" id="chatQuick" role="group" aria-label="빠른 명령"></div>
+          <textarea id="chatInput" rows="3" maxlength="8000" spellcheck="false" enterkeyhint="send" aria-label="대표 명령 입력" placeholder="Claude 에게 시킬 일을 적어 주세요"></textarea>
+          <div class="chint"><span>Enter 전송 · Shift+Enter 줄바꿈</span><span id="chatCount">0 / 8000</span></div>
+          <div class="crow">
+            <div class="cseg" role="group" aria-label="모델 선택"><button type="button" class="cs on" data-model="sonnet" aria-pressed="true">Sonnet</button><button type="button" class="cs" data-model="opus" aria-pressed="false">Opus</button></div>
+            <span class="grow"></span>
+            <button type="button" class="cbtn" id="chatReset">새 대화</button>
+            <button type="submit" class="cbtn pri" id="chatSend">보내기</button>
+          </div>
+        </form>
+        <div class="sr" id="chatLive" role="status" aria-live="polite"></div>
+      </div>
+    </section>
     <section class="card" id="cardKpi"><h2>경영 지표 <small>KPI</small></h2><div class="kpis" id="kpis"></div></section>
     <section class="card" id="cardAp"><h2>오너 승인 대기 <small>Approvals</small><span class="n" id="apCount"></span></h2><div id="approvals"></div></section>
     <section class="card" id="cardFeed"><h2>실시간 이벤트 <small>Live feed</small><span class="n" id="feedCount"></span></h2><ul class="list scroll" id="feed"></ul></section>
@@ -164,6 +242,7 @@ b{font-weight:700}
  *   8. ACTORS         상태→애니메이션/이동, 렌더 루프
  *   9. DATA           /api/state 폴링, 정규화, DEMO 시뮬레이터
  *  10. UI PANEL       KPI/이벤트/승인/상품, 툴팁
+ *  10b. CHAT          대표 명령창 (/api/chat*, 토큰 헤더, 폴링, 안전한 답변 렌더)
  *  11. BOOT
  * ===================================================================== */
 
@@ -171,6 +250,7 @@ b{font-weight:700}
 const LW = 448, LH = 352;                 // 논리 해상도(px). 정수 배율로 확대한다.
 const POLL_MS = 2000, PROBE_DEMO_MS = 6000;
 const API_URL = '/api/state';
+const STREAM_URL = '/api/stream';   // 실시간(SSE). 연결돼 있는 동안은 폴링을 쉬고, 끊기면 폴링이 이어받는다
 const DEMO_HINT = '실데이터 보려면: python scripts/office_server.py 실행 후 http://127.0.0.1:8765';
 
 const ROLES = {
@@ -350,7 +430,10 @@ function roleKeyOf(a) {
   return own(ROLES, r) ? r : null;
 }
 function roomOf(a) { const k = roleKeyOf(a); return k ? ROLES[k].room : 'ceo'; }
-function roleTitle(a) { const k = roleKeyOf(a); return k ? ROLES[k].ko : (str(a && a.role) || '직원'); }
+/* 팀장(Opus): ID 가 "<역할>-lead" (docs/11_팀_체계.md). 방은 앞부분 역할로 정해지고 직함만 팀장으로 바꾼다 */
+const LEAD_TITLES = { pm: '기획팀장', maker: '제작팀장', qa: '품질팀장', marketer: '사업운영팀장' };
+function leadTitle(id) { const m = /^([a-z]+)-lead$/.exec(str(id).trim().toLowerCase()); return m ? (LEAD_TITLES[m[1]] || '팀장') : ''; }
+function roleTitle(a) { const lt = leadTitle(a && a.id); if (lt) return lt; const k = roleKeyOf(a); return k ? ROLES[k].ko : (str(a && a.role) || '직원'); }
 function normState(s) { s = str(s).trim().toLowerCase(); return own(STATES, s) ? s : 'idle'; }
 function cmpAgent(a, b) {
   const ka = roleKeyOf(a), kb = roleKeyOf(b);
@@ -1104,8 +1187,20 @@ function render(t) {
 function arr(v) { return Array.isArray(v) ? v : []; }
 function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
 /* 서버 응답(또는 데모)을 안전한 형태로 정규화. 어떤 입력이 와도 던지지 않는다. */
+/* 상시 근무자(office.py reset 기본 명단 + 팀장)는 늘 자리에 있다. 배치 때 잠깐 들어온 번호 직원(maker-7 등)은
+   일을 마치고(done/idle) 10분이 지나면 퇴근 처리해 화면과 인원수에서 뺀다. 상태 파일은 그대로 둔다. */
+const PERMANENT_STAFF = new Set(['ceo', 'researcher', 'pm', 'designer', 'maker-1', 'maker-2', 'maker-3', 'qa-1', 'qa-2', 'marketer', 'cfo',
+  'pm-lead', 'maker-lead', 'qa-lead', 'marketer-lead']);
+const LEAVE_AFTER_MS = 10 * 60 * 1000;
+function onDuty(a, nowMs) {
+  if (PERMANENT_STAFF.has(a.id) || (a.state !== 'done' && a.state !== 'idle')) return true;
+  const t = Date.parse(a.updated_at);
+  return !(t > 0) || nowMs - t < LEAVE_AFTER_MS;
+}
+
 function normalizeState(raw) {
   const r = isObj(raw) ? raw : {};
+  const nowMs = Date.parse(str(r.now)) || Date.now();
   const seen = new Set(), agents = [];
   for (const a of arr(r.agents)) {
     if (!isObj(a)) continue;
@@ -1134,7 +1229,7 @@ function normalizeState(raw) {
   const approvals = arr(r.approvals).filter(isObj).map((a) => ({
     id: str(a.id), product_id: str(a.product_id), action: str(a.action).trim(), requested_at: str(a.requested_at), status: str(a.status).trim().toLowerCase() || 'pending', note: str(a.note),
   }));
-  return { now: str(r.now), agents, events, kpis, approvals, products };
+  return { now: str(r.now), agents: agents.filter((a) => onDuty(a, nowMs)), events, kpis, approvals, products };
 }
 
 /* ---- DEMO 시뮬레이터: 같은 모양의 스냅샷을 만들어 낸다 ---- */
@@ -1294,7 +1389,7 @@ function renderLegend(st) {
   const cnt = {};
   st.agents.forEach((a) => { cnt[a.state] = (cnt[a.state] || 0) + 1; });
   setHTML('legend', ui.el.legend,
-    '<span class="sum">직원 ' + st.agents.length + '명</span>' +
+    '<span class="sum">근무 중 ' + (st.agents.length - (cnt.done || 0)) + '명</span>' +   // 일을 마친(완료) 직원은 인원수에서 뺀다
     STATE_KEYS.map((k) => '<span class="lg" style="--c:' + STATES[k].color + '"><i></i>' + STATES[k].ko + ' <b>' + (cnt[k] || 0) + '</b></span>').join('') +
     (st.agents.length ? '' : '<span class="empty-note">· 직원 상태 파일이 아직 없어요 (<code>python scripts/office.py reset</code>)</span>'));
 }
@@ -1314,7 +1409,7 @@ function renderPanel(st) {
 
 /* ---- 툴팁 ---- */
 function tipHTML(ac) {
-  const st = own(STATES, ac.state) || STATES.idle, rk = ac.roleKey, role = rk ? ROLES[rk] : null, title = role ? role.ko : (clip(ac.role, 16) || '직원');
+  const st = own(STATES, ac.state) || STATES.idle, rk = ac.roleKey, role = rk ? ROLES[rk] : null, title = leadTitle(ac.id) || (role ? role.ko : (clip(ac.role, 16) || '직원'));
   return '<div class="tt-h"><span class="dot" style="--c:' + st.color + '"></span><b>' + esc(clip(ac.id, 40)) + '</b><span class="tt-role" style="--c:' + (role ? role.color : '#9aa7bd') + '">' + esc(title) + '</span></div>' +
     '<div class="tt-r"><span>상태</span><i style="color:' + st.color + '">' + esc(st.ko) + '</i></div>' +
     '<div class="tt-r"><span>작업</span><i>' + esc(clip(ac.task, 110) || '-') + '</i></div>' +
@@ -1379,8 +1474,27 @@ async function fetchLive() {
     return raw;
   } finally { if (timer) clearTimeout(timer); }
 }
+/* ---- 실시간 스트림: 서버가 상태 파일이 바뀌는 즉시 밀어준다. EventSource 가 끊기면 스스로 다시 붙는다 ---- */
+let stream = null;
+function streamOpen() { return !!stream && stream.readyState === 1; }
+function startStream() {
+  if (typeof EventSource === 'undefined' || (typeof location !== 'undefined' && location.protocol === 'file:')) return;
+  try {
+    stream = new EventSource(STREAM_URL);
+    stream.addEventListener('state', (ev) => {
+      try {
+        const raw = JSON.parse(ev.data);
+        if (!isObj(raw) || raw.error) return;
+        liveFails = 0;
+        applySnapshot(normalizeState(raw), 'live');
+      } catch (e) { reportOnce(e); }
+    });
+  } catch (e) { stream = null; }
+}
+
 let lastProbe = 0;
 async function pollOnce() {
+  if (streamOpen()) return;                      // 실시간 연결 중이면 폴링하지 않는다
   let raw = null;
   if (model.mode !== 'demo' || Date.now() - lastProbe >= PROBE_DEMO_MS) {   // DEMO 중에는 서버 재접속을 가끔만 시도 (콘솔 오류 소음 방지)
     lastProbe = Date.now();
@@ -1394,6 +1508,420 @@ async function pollOnce() {
   } catch (e) { reportOnce(e); }
 }
 function pollLoop() { pollOnce().then(() => setTimeout(pollLoop, POLL_MS), () => setTimeout(pollLoop, POLL_MS)); }
+
+/* ============================== 10b. 대표 명령창 (owner chat) ============================== */
+/* 서버가 "/" 를 내줄 때 아래 토큰 자리표시자를 프로세스마다 다른 값으로 바꿔 넣는다.
+ * 자리표시자 글자는 이 파일에 정확히 한 번만 있어야 한다 → 비교용 값은 이어붙여서 만든다. */
+const CHAT_TOKEN = '__SHREW_CHAT_TOKEN__';
+const CHAT_PLACEHOLDER = '__SHREW_CHAT_' + 'TOKEN__';
+const CHAT_MAX = 8000, CHAT_POLL_MS = 1000, CHAT_WATCH_MS = 3000, CHAT_HARD_CAP_MS = 16 * 60e3;   // 서버 제한 15분 + 여유
+const CHAT_OFF_NOTE = '실행 중인 오피스 서버(ShrewOffice.exe)에서만 쓸 수 있습니다';
+const CHAT_AUTH_MSG = '페이지를 새로고침(F5) 해 주세요. 오피스 서버가 다시 시작되면 인증 토큰이 바뀝니다.';
+const CHAT_QUICK = ['오늘 진행 상황 요약', '승인 대기 정리해줘', '이번 달 매출 리포트', '다음 배치 아이디어 3개'];
+const CHAT_MODELS = { sonnet: 'Sonnet', opus: 'Opus' };
+const CHAT_ROLES = ['owner', 'claude', 'system'];
+
+const chat = {
+  enabled: !!CHAT_TOKEN && CHAT_TOKEN !== CHAT_PLACEHOLDER && !(typeof location !== 'undefined' && location.protocol === 'file:'),
+  el: {}, msgs: [], cli: null, loaded: false, histErr: false, notice: null, warnKey: null,
+  model: 'sonnet', folded: false, unread: false,
+  busy: false, run: 0, jobId: null, sentAt: 0, runModel: 'sonnet', fails: 0, timer: 0, tick: 0,
+  liveText: '', tools: [], liveShown: null, liveEl: null, liveBody: null, liveTools: null,
+  toolsByJob: {}, lastRun: '', watching: false, watchTimer: 0,
+};
+
+function mk(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 저장소 사용 불가 */ } }
+function chatModelName(k) { return own(CHAT_MODELS, k) || CHAT_MODELS.sonnet; }
+function chatTs(iso) {
+  const t = Date.parse(iso);
+  if (!isFinite(t)) return '';
+  const d = new Date(t), n = new Date();
+  return (d.toDateString() === n.toDateString() ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ') + hhmm(iso);
+}
+function chatSay(msg) { if (chat.el.live) chat.el.live.textContent = msg; }     // 스크린리더용 상태 알림 (스트리밍 중에는 조용히)
+
+/* ---- 서버 호출: 항상 토큰 헤더를 싣는다. 네트워크 오류는 던지고, HTTP 오류는 {status, ok, data} 로 돌려준다 ---- */
+async function chatApi(path, opts) {
+  opts = opts || {};
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(() => ctl.abort(), 20000) : 0;
+  const headers = { 'X-Shrew-Token': CHAT_TOKEN };
+  const init = { method: opts.method || 'GET', headers, cache: 'no-store', signal: ctl ? ctl.signal : undefined };
+  if (opts.json !== undefined) { headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opts.json); }
+  try {
+    const res = await fetch(path, init);
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    return { status: res.status, ok: res.ok, data: isObj(data) ? data : {} };
+  } finally { if (timer) clearTimeout(timer); }
+}
+
+/* ---- 답변 렌더: innerHTML 을 쓰지 않고 DOM 노드만 만든다 (줄바꿈은 CSS pre-wrap, 인라인 코드·굵게·코드 블록만 허용) ---- */
+function chatInline(root, s) {
+  const re = /`([^`\n]+)`|\*\*([^*\n]+)\*\*/g;
+  let last = 0, m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) root.appendChild(document.createTextNode(s.slice(last, m.index)));
+    root.appendChild(mk(m[1] != null ? 'code' : 'b', null, m[1] != null ? m[1] : m[2]));
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) root.appendChild(document.createTextNode(s.slice(last)));
+}
+function chatRich(root, text) {
+  const lines = str(text).replace(/\r\n?/g, '\n').replace(/^\n+|\s+$/g, '').split('\n');
+  let buf = [], fence = null;
+  const flush = () => { if (buf.length) { chatInline(root, buf.join('\n').replace(/\n{3,}/g, '\n\n')); buf = []; } };      // 연속 빈 줄은 한 줄로
+  const pre = (body) => root.appendChild(mk('pre', 'cpre', body));
+  for (const ln of lines) {
+    if (fence === null) {
+      if (/^\s*```/.test(ln)) { flush(); fence = []; } else buf.push(ln);
+    } else if (/^\s*```\s*$/.test(ln)) { pre(fence.join('\n')); fence = null; }
+    else fence.push(ln);
+  }
+  if (fence !== null) pre(fence.join('\n'));      // 스트리밍 중 아직 닫히지 않은 코드 블록
+  flush();
+}
+
+/* ---- 도구 호출 칩 ("Read · docs/00_전략_Strategy.md") ---- */
+function chatToolLabel(t) {
+  const name = clip(str(t.name).trim() || '도구', 24);
+  let s = str(t.summary).trim();
+  if (s.charAt(0) === '{') {            // 서버가 입력 JSON 을 그대로 줘도 사람이 읽을 값만 뽑는다 (120자에서 잘려 있을 수 있어 정규식)
+    const m = /"(?:file_path|path|command|pattern|url|query|description|prompt)"\s*:\s*"((?:[^"\\]|\\.)*)/.exec(s);
+    if (m) s = m[1].replace(/\\(["\\\/])/g, '$1').replace(/\\n/g, ' ');
+  }
+  return name + (s ? ' · ' + clip(s.replace(/\s+/g, ' '), 56) : '');
+}
+function chatToolsEl(tools) {
+  const list = arr(tools);
+  if (!list.length) return null;
+  const wrap = mk('div', 'ctools'), shown = list.slice(-6);
+  if (list.length > shown.length) wrap.appendChild(mk('span', 'ctool', '+' + (list.length - shown.length)));
+  shown.forEach((t) => { const c = mk('span', 'ctool', chatToolLabel(t)); c.title = clip(str(t.name) + ' ' + str(t.summary), 200); wrap.appendChild(c); });
+  return wrap;
+}
+
+/* ---- 메시지 목록 ---- */
+function chatBubble(m) {
+  const role = m.role === 'owner' || m.role === 'claude' ? m.role : 'system';
+  const el = mk('div', 'cm ' + role), body = mk('div', 'cb');
+  if (role === 'claude') chatRich(body, m.text); else body.textContent = m.text;
+  el.appendChild(body);
+  if (role === 'claude' && m.job_id) { const tl = chatToolsEl(own(chat.toolsByJob, m.job_id)); if (tl) el.appendChild(tl); }
+  const ts = chatTs(m.ts);
+  if (ts) el.appendChild(mk('span', 'ct', ts));
+  return el;
+}
+function chatAtBottom() { const b = chat.el.msgs; return !b || b.scrollHeight - b.scrollTop - b.clientHeight < 40; }
+function chatToBottom() { const b = chat.el.msgs; if (b) b.scrollTop = b.scrollHeight; }
+function chatRenderList() {
+  const box = chat.el.msgs;
+  if (!box) return;
+  const stick = chatAtBottom();
+  box.textContent = '';
+  if (!chat.msgs.length && !chat.busy) {
+    box.appendChild(mk('div', 'cm system', !chat.enabled ? '연결된 오피스 서버가 없어 대화를 불러오지 않았습니다.' : chat.histErr ? '대화 기록을 불러오지 못했습니다.' : chat.loaded ? '아직 대화가 없습니다. 아래에 명령을 입력해 보세요.' : '대화 기록을 불러오는 중…'));
+  }
+  chat.msgs.forEach((m) => box.appendChild(chatBubble(m)));
+  chat.liveEl = chat.liveBody = chat.liveTools = null; chat.liveShown = null;
+  if (chat.busy) {
+    chat.liveEl = mk('div', 'cm claude live');
+    chat.liveBody = mk('div', 'cb'); chat.liveTools = mk('div');
+    chat.liveEl.appendChild(chat.liveBody); chat.liveEl.appendChild(chat.liveTools);
+    box.appendChild(chat.liveEl);
+    chatUpdateLive(true);
+  }
+  if (stick) chatToBottom();
+}
+function chatUpdateLive(force) {                  // 폴링마다 호출: 진행 중인 답변 말풍선만 제자리에서 갱신
+  if (!chat.liveEl) return;
+  const key = chat.liveText + '\u0000' + chat.tools.length + '\u0000' + (chat.jobId ? 1 : 0);
+  if (!force && key === chat.liveShown) return;
+  chat.liveShown = key;
+  const stick = chatAtBottom(), b = chat.liveBody;
+  b.textContent = '';
+  if (chat.liveText) chatRich(b, chat.liveText); else b.appendChild(mk('span', 'cdim', chat.jobId ? '응답을 기다리는 중' : '명령을 보내는 중'));
+  b.appendChild(mk('span', 'cur'));
+  chat.liveTools.textContent = '';
+  const tl = chatToolsEl(chat.tools);
+  if (tl) chat.liveTools.appendChild(tl);
+  if (stick) chatToBottom();
+}
+
+/* ---- 상태줄 / 배지 / 경고 배너 / 입력 컨트롤 ---- */
+function chatLoginNotice(sub) { return { kind: 'bad', login: true, title: 'Claude CLI 로그인이 필요합니다', sub: sub || '' }; }
+function chatRenderStatus() {
+  const bar = chat.el.status, txt = chat.el.stxt, dot = chat.el.sdot;
+  if (!bar || !txt) return;
+  let c = 'var(--dim)', t = '', tip = '', run = false;
+  if (!chat.enabled) t = '오피스 서버에 연결되지 않음';
+  else if (chat.busy) { c = 'var(--gold)'; run = true; t = '작업 중 · ' + Math.max(0, Math.floor((Date.now() - chat.sentAt) / 1000)) + '초 · ' + chatModelName(chat.runModel); }
+  else if (chat.watching) { c = 'var(--gold)'; run = true; t = '이전 명령을 처리 중입니다…'; }
+  else if (!chat.cli) t = chat.histErr ? '서버 응답 없음 · 상태 알 수 없음' : chat.loaded ? 'CLI 상태 알 수 없음' : '연결 확인 중…';
+  else if (!chat.cli.found) { c = 'var(--red)'; t = 'Claude CLI를 찾을 수 없음'; }
+  else if (chat.cli.logged_in === false) { c = 'var(--red)'; t = 'Claude CLI 로그인 필요'; }
+  else { c = 'var(--green)'; t = 'Claude CLI 연결됨' + (chat.lastRun ? ' · 직전 ' + chat.lastRun : ''); tip = chat.cli.path || ''; }
+  txt.textContent = t; bar.title = tip; dot.style.background = c; bar.classList.toggle('run', run);
+}
+function chatRenderBadge() {
+  const n = chat.el.badge;
+  if (!n) return;
+  if (chat.busy) { n.textContent = '처리 중 ' + Math.max(0, Math.floor((Date.now() - chat.sentAt) / 1000)) + '초'; n.className = 'n hot'; }
+  else if (chat.unread) { n.textContent = '새 응답'; n.className = 'n hot'; }
+  else { n.textContent = ''; n.className = 'n'; }
+}
+function chatRenderWarn() {
+  const w = chat.el.warn;
+  if (!w) return;
+  let n = chat.notice;
+  if (!chat.enabled) n = { kind: 'info', title: '대표 명령창을 쓸 수 없습니다', body: CHAT_OFF_NOTE };
+  else if (!n && chat.cli) {
+    if (!chat.cli.found) n = { kind: 'bad', title: 'Claude CLI를 찾을 수 없습니다', body: 'Claude Code CLI를 설치하거나, 환경변수 SHREW_CLAUDE_BIN 에 claude 실행 파일 경로를 지정한 뒤 오피스를 다시 켜 주세요.' };
+    else if (chat.cli.logged_in === false) n = chatLoginNotice('');
+  }
+  const key = n ? JSON.stringify(n) : '';
+  if (key === chat.warnKey) return;
+  chat.warnKey = key;
+  w.textContent = '';
+  if (!n) { w.hidden = true; return; }
+  w.hidden = false; w.className = 'cwarn ' + n.kind;
+  w.appendChild(mk('b', null, n.title));
+  if (n.login) {
+    const p = mk('span');
+    p.appendChild(document.createTextNode('한 번만 로그인하면 됩니다. 터미널(PowerShell)에서 '));
+    p.appendChild(mk('code', null, 'claude'));
+    p.appendChild(document.createTextNode(' 를 실행해 '));
+    p.appendChild(mk('code', null, '/login'));
+    p.appendChild(document.createTextNode(' 으로 로그인한 뒤, 여기서 명령을 다시 보내 주세요.'));
+    w.appendChild(p);
+  } else if (n.body) w.appendChild(mk('span', null, n.body));
+  if (n.sub) w.appendChild(mk('span', 'sub', clip(n.sub, 400)));
+}
+function chatCount() {
+  const ta = chat.el.input, c = chat.el.count;
+  if (!ta || !c) return;
+  const n = ta.value.length;
+  c.textContent = n + ' / ' + CHAT_MAX;
+  c.className = n >= CHAT_MAX ? 'full' : n >= CHAT_MAX - 500 ? 'over' : '';
+}
+function chatControls() {
+  const e = chat.el, off = !chat.enabled;
+  if (!e.input) return;
+  e.input.disabled = off;
+  e.input.placeholder = off ? CHAT_OFF_NOTE : 'Claude 에게 시킬 일을 적어 주세요';
+  e.send.disabled = off || chat.busy || !e.input.value.trim();
+  e.send.textContent = chat.busy ? '처리 중…' : '보내기';
+  e.reset.disabled = off || chat.busy;
+  e.quick.querySelectorAll('button').forEach((b) => { b.disabled = off; });
+  e.seg.forEach((b) => { b.disabled = off; });
+}
+function chatRenderAll() { chatRenderList(); chatRenderWarn(); chatRenderStatus(); chatRenderBadge(); chatControls(); }
+
+/* ---- 기록 / CLI 상태 ---- */
+function chatNormMsgs(v) {
+  return arr(v).filter(isObj).map((m) => ({ role: CHAT_ROLES.indexOf(m.role) >= 0 ? m.role : 'system', text: str(m.text), ts: str(m.ts), job_id: m.job_id == null ? null : str(m.job_id) }));
+}
+function chatNormCli(c) {
+  return isObj(c) ? { found: !!c.found, path: c.path ? str(c.path) : null, logged_in: c.logged_in === true ? true : c.logged_in === false ? false : null } : null;
+}
+async function chatLoadHistory() {
+  let r = null;
+  try { r = await chatApi('/api/chat/history'); } catch (e) { r = null; }
+  if (!r || !r.ok) {
+    chat.histErr = true;
+    if (r && r.status === 403) chat.notice = { kind: 'bad', title: '인증에 실패했습니다', body: CHAT_AUTH_MSG };
+    return false;
+  }
+  chat.histErr = false; chat.loaded = true;
+  chat.cli = chatNormCli(r.data.cli);
+  if (!chat.busy) chat.msgs = chatNormMsgs(r.data.messages);        // 다른 명령이 시작됐으면 방금 보낸 내 말풍선을 지우지 않는다
+  return true;
+}
+
+/* ---- 명령 전송 → 폴링 → 완료 ---- */
+function chatTick() {
+  chatRenderStatus(); chatRenderBadge();
+  if (chat.busy && Date.now() - chat.sentAt > CHAT_HARD_CAP_MS + 5000) chatFinish(chat.run, { status: 'error', error: '응답 시간이 너무 오래 걸려 기다리기를 멈췄습니다.' });
+}
+function chatFill(text) {
+  const ta = chat.el.input;
+  if (!ta || ta.disabled) return;
+  const cur = ta.value.trim();
+  ta.value = (!cur || CHAT_QUICK.indexOf(cur) >= 0 ? text : ta.value.replace(/\s+$/, '') + '\n' + text).slice(0, CHAT_MAX);   // 자동 전송은 하지 않는다
+  ta.focus();
+  try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) { /* ignore */ }
+  chatCount(); chatControls();
+}
+async function chatSend() {
+  const ta = chat.el.input;
+  if (!chat.enabled || !ta) return;
+  if (chat.busy) { chat.notice = { kind: 'warn', title: '이전 명령을 처리 중입니다', body: '끝나면 보내 주세요. 입력한 내용은 그대로 남아 있습니다.' }; chatRenderWarn(); return; }
+  const text = ta.value.trim();
+  if (!text) return;
+  if (text.length > CHAT_MAX) { chat.notice = { kind: 'bad', title: '명령이 너무 깁니다', body: CHAT_MAX + '자 이하로 줄여 주세요.' }; chatRenderWarn(); return; }
+  stopWatch();
+  chat.notice = null;
+  if (chat.cli && chat.cli.logged_in === false) chat.cli.logged_in = null;      // 로그인했을 수 있으니 다음 응답 때 서버가 다시 알려 준다
+  const run = ++chat.run, mine = { role: 'owner', text, ts: new Date().toISOString(), job_id: null };
+  chat.busy = true; chat.jobId = null; chat.sentAt = Date.now(); chat.runModel = chat.model; chat.fails = 0; chat.liveText = ''; chat.tools = [];
+  chat.msgs.push(mine);
+  ta.value = '';
+  clearInterval(chat.tick); chat.tick = setInterval(chatTick, 1000);
+  chatCount(); chatRenderAll(); chatToBottom(); chatSay('명령을 보냈습니다');
+  let r = null;
+  try { r = await chatApi('/api/chat', { method: 'POST', json: { message: text, model: chat.model } }); } catch (e) { r = null; }
+  if (run !== chat.run || !chat.busy) return;
+  if (r && r.status === 202 && r.data.job_id) {
+    chat.jobId = str(r.data.job_id); chat.liveShown = null; chatUpdateLive(true);
+    clearTimeout(chat.timer); chat.timer = setTimeout(() => chatPoll(run), CHAT_POLL_MS);
+    return;
+  }
+  /* 거절됨: 내 말풍선을 되돌리고 입력창에 원문을 복원한다 */
+  chat.busy = false; clearInterval(chat.tick);
+  const i = chat.msgs.indexOf(mine);
+  if (i >= 0) chat.msgs.splice(i, 1);
+  if (!ta.value.trim()) ta.value = text;
+  const st = r ? r.status : 0, d = r ? r.data : {}, em = str(d.error);
+  if (st === 409) { chat.notice = { kind: 'warn', title: '이전 명령을 처리 중입니다', body: '끝나면 자동으로 알려 드려요. 입력한 내용은 그대로 남아 있습니다.' }; chatWatch(); }
+  else if (st === 503) { chat.notice = { kind: 'bad', title: em || 'Claude CLI를 찾을 수 없습니다', body: str(d.hint) }; chat.cli = { found: false, path: null, logged_in: null }; }
+  else if (st === 403) chat.notice = { kind: 'bad', title: '인증에 실패했습니다', body: CHAT_AUTH_MSG, sub: em };
+  else if (!r) chat.notice = { kind: 'bad', title: '오피스 서버에 연결할 수 없습니다', body: '서버가 켜져 있는지 확인한 뒤 다시 보내 주세요. 입력한 내용은 그대로 남아 있습니다.' };
+  else chat.notice = { kind: 'bad', title: em || '명령을 보내지 못했습니다 (HTTP ' + st + ')', body: str(d.hint) };
+  chatCount(); chatRenderAll(); chatSay('명령을 보내지 못했습니다');
+}
+async function chatPoll(run) {
+  if (run !== chat.run || !chat.busy || !chat.jobId) return;
+  if (Date.now() - chat.sentAt > CHAT_HARD_CAP_MS) { chatFinish(run, { status: 'error', error: '응답 시간이 너무 오래 걸려 기다리기를 멈췄습니다. 서버에서 계속 처리 중일 수 있으니 잠시 후 새로고침해 보세요.' }); return; }
+  let r = null;
+  try { r = await chatApi('/api/chat/jobs/' + encodeURIComponent(chat.jobId)); } catch (e) { r = null; }
+  if (run !== chat.run || !chat.busy) return;
+  if (r && r.ok) {
+    chat.fails = 0;
+    const j = r.data;
+    chat.liveText = str(j.text);
+    chat.tools = arr(j.tools).filter(isObj).map((t) => ({ name: str(t.name), summary: str(t.summary) }));
+    chatUpdateLive();
+    if (j.status === 'done' || j.status === 'error') { chatFinish(run, j); return; }
+  } else if (r && (r.status === 404 || r.status === 403)) {
+    chatFinish(run, { status: 'error', error: r.status === 404 ? '진행 중이던 명령을 찾을 수 없습니다. 오피스 서버가 다시 시작된 것 같아요. 새로고침(F5) 후 다시 시도해 주세요.' : CHAT_AUTH_MSG });
+    return;
+  } else if (++chat.fails >= 8) {
+    chatFinish(run, { status: 'error', error: '오피스 서버와의 연결이 끊겼습니다. 서버가 계속 처리 중이면 다시 연결된 뒤 새로고침하면 기록에서 확인할 수 있어요.' });
+    return;
+  }
+  chat.timer = setTimeout(() => chatPoll(run), CHAT_POLL_MS);
+}
+function chatFinish(run, j) {
+  if (run !== chat.run || !chat.busy) return;
+  clearTimeout(chat.timer); clearInterval(chat.tick);
+  const jobId = chat.jobId, secs = Math.max(0, Math.round((Date.now() - chat.sentAt) / 1000));
+  const ok = j.status === 'done', text = typeof j.text === 'string' ? j.text : chat.liveText;
+  const tools = Array.isArray(j.tools) ? j.tools.filter(isObj).map((t) => ({ name: str(t.name), summary: str(t.summary) })) : chat.tools;
+  const cost = typeof j.cost_usd === 'number' && isFinite(j.cost_usd) ? j.cost_usd : null;
+  const err = ok ? '' : str(j.error).trim() || '명령을 처리하지 못했습니다.';
+  if (jobId && tools.length) chat.toolsByJob[jobId] = tools;
+  chat.busy = false; chat.jobId = null;
+  chat.lastRun = (ok ? '완료 ' : '실패 ') + secs + '초' + (cost != null ? ' · $' + cost.toFixed(cost < 0.1 ? 4 : 2) : '');
+  chat.notice = ok ? null : /로그인|\/login|oauth/i.test(err) ? chatLoginNotice('') : { kind: 'bad', title: '명령 처리에 실패했습니다', body: err };
+  if (text.trim()) chat.msgs.push({ role: 'claude', text, ts: new Date().toISOString(), job_id: jobId });     // 서버 기록을 다시 읽어 오기 전까지의 임시 표시
+  if (chat.folded) chat.unread = true;
+  chatRenderAll(); chatSay(ok ? '응답이 도착했습니다' : '명령 처리에 실패했습니다');
+  chatLoadHistory().then(() => {
+    if (chat.busy) return;
+    if (!ok && chat.cli && chat.cli.logged_in === false && chat.notice && !chat.notice.login) chat.notice = chatLoginNotice('');
+    chatRenderAll();
+  });
+}
+
+/* ---- 이미 다른 명령이 돌고 있을 때(409): 기록을 가끔 읽어 끝났는지 본다 (새로고침 직후 등) ---- */
+function stopWatch() { chat.watching = false; clearTimeout(chat.watchTimer); }
+function chatWatch() {
+  if (chat.watching || !chat.enabled) return;
+  chat.watching = true;
+  const t0 = Date.now(), keyOf = (m) => (m ? m.role + '|' + m.ts + '|' + m.text.length : '');
+  let base = null;
+  const step = async () => {
+    if (!chat.watching) return;
+    if (chat.busy) { chat.watching = false; return; }
+    let r = null;
+    try { r = await chatApi('/api/chat/history'); } catch (e) { r = null; }
+    if (!chat.watching || chat.busy) { chat.watching = false; return; }
+    if (r && r.ok) {
+      const list = chatNormMsgs(r.data.messages), last = list.length ? list[list.length - 1] : null, k = keyOf(last);
+      if (base === null) base = k;
+      else if (k !== base && last && last.role !== 'owner') {                // 기준 이후 새 응답(또는 시스템 줄)이 생겼다 = 끝남
+        chat.watching = false; chat.notice = null; chat.msgs = list; chat.cli = chatNormCli(r.data.cli); chat.loaded = true;
+        if (chat.folded) chat.unread = true;
+        chatRenderAll(); chatSay('이전 명령 처리가 끝났습니다');
+        return;
+      }
+    }
+    if (Date.now() - t0 > CHAT_HARD_CAP_MS) { chat.watching = false; chatRenderAll(); return; }
+    chat.watchTimer = setTimeout(step, CHAT_WATCH_MS);
+  };
+  step();
+}
+
+async function chatReset() {
+  if (!chat.enabled || chat.busy) return;
+  let r = null;
+  try { r = await chatApi('/api/chat/reset', { method: 'POST', json: {} }); } catch (e) { r = null; }
+  if (r && r.ok) {
+    stopWatch(); chat.notice = null; chat.lastRun = ''; chat.toolsByJob = {};
+    await chatLoadHistory();
+    chatSay('새 대화를 시작했습니다');
+  } else chat.notice = r && r.status === 403 ? { kind: 'bad', title: '인증에 실패했습니다', body: CHAT_AUTH_MSG } : { kind: 'bad', title: '새 대화를 시작하지 못했습니다', body: str(r && r.data.error) || '서버에 연결할 수 없습니다.' };
+  chatRenderAll(); chatToBottom();
+}
+function chatSetFold(folded) {
+  chat.folded = !!folded;
+  const e = chat.el;
+  if (e.fold) e.fold.setAttribute('aria-expanded', chat.folded ? 'false' : 'true');
+  if (e.body) e.body.hidden = chat.folded;
+  if (!chat.folded) { chat.unread = false; chatRenderBadge(); chatToBottom(); }
+}
+function chatSetModel(k) {
+  if (!own(CHAT_MODELS, k)) return;
+  chat.model = k;
+  chat.el.seg.forEach((b) => { const on = b.getAttribute('data-model') === k; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+}
+function chatInit() {
+  const $ = (id) => document.getElementById(id), e = chat.el;
+  e.card = $('cardChat'); e.fold = $('chatFold'); e.badge = $('chatBadge'); e.body = $('chatBody'); e.status = $('chatStatus'); e.warn = $('chatWarn');
+  e.msgs = $('chatMsgs'); e.form = $('chatForm'); e.quick = $('chatQuick'); e.input = $('chatInput'); e.count = $('chatCount'); e.reset = $('chatReset'); e.send = $('chatSend'); e.live = $('chatLive');
+  if (!e.card || !e.input || !e.msgs || !e.status || !e.quick || !e.reset || !e.send) return;     // 마크업이 없으면 조용히 포기 (오피스 본체는 계속 동작)
+  e.sdot = e.status.querySelector('i'); e.stxt = e.status.querySelector('span');
+  e.seg = Array.prototype.slice.call(e.card.querySelectorAll('.cs'));
+  CHAT_QUICK.forEach((q) => {
+    const b = mk('button', 'cq', q); b.type = 'button';
+    b.addEventListener('click', () => chatFill(q));
+    e.quick.appendChild(b);
+  });
+  const savedModel = lsGet('office.chat.model');
+  chatSetModel(own(CHAT_MODELS, savedModel) ? savedModel : 'sonnet');
+  e.seg.forEach((b) => b.addEventListener('click', () => { chatSetModel(b.getAttribute('data-model')); lsSet('office.chat.model', chat.model); }));
+  if (e.fold) e.fold.addEventListener('click', () => { chatSetFold(!chat.folded); lsSet('office.chat.fold', chat.folded ? '1' : '0'); });
+  e.input.addEventListener('input', () => { chatCount(); chatControls(); });
+  e.input.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Enter' || ev.shiftKey || ev.altKey) return;           // Shift+Enter = 줄바꿈, Enter / Ctrl+Enter = 전송
+    if (ev.isComposing || ev.keyCode === 229) return;             // 한글 조합 확정용 Enter 는 전송하지 않는다
+    ev.preventDefault(); chatSend();
+  });
+  e.form.addEventListener('submit', (ev) => { ev.preventDefault(); chatSend(); });
+  e.reset.addEventListener('click', chatReset);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && chat.enabled && !chat.loaded && !chat.busy) chatLoadHistory().then(chatRenderAll);
+  });
+  chatSetFold(lsGet('office.chat.fold') === '1');
+  chatCount(); chatRenderAll();
+  if (chat.enabled) chatLoadHistory().then(() => { chatRenderAll(); chatToBottom(); });
+}
 
 /* ============================== 11. BOOT ============================== */
 function fitCanvas() {
@@ -1439,8 +1967,10 @@ function boot() {
     world.showNames = !!tgl.checked;
     tgl.addEventListener('change', () => { world.showNames = tgl.checked; try { localStorage.setItem('office.names', tgl.checked ? '1' : '0'); } catch (e) { /* ignore */ } });
   }
+  startStream();                                             // 실시간 (연결 안 되면 아래 폴링이 그대로 동작)
   pollLoop();
   requestAnimationFrame(frame);
+  try { chatInit(); } catch (e) { reportOnce(e); }          // 명령창이 실패해도 오피스 본체는 계속 돈다
 }
 
 /* 테스트용 노출 (브라우저에서는 window.__OFFICE__) */
@@ -1448,6 +1978,7 @@ const OFFICE_API = {
   LW, LH, ROLES, STATES, ROOMS, DESKS, TABLES, hash32, mulberry32, paletteFor, fmtKRW, fmtNum, relTime, hhmm, esc, prefixOf, roleKeyOf, roomOf, normState, cmpAgent,
   seatFor, meetSeat, tableSeatPos, allocateSeats, deskCap, normalizeState, makeDemo, mixHex, bubbleOf, world, model, ui, syncActors, updateActor, render, applySnapshot, pollOnce,
   fitCanvas, hitTest, buildDrawables, drawScene, boot, getS: () => S,
+  chat, chatRich, chatSend, chatToolLabel,
 };
 if (typeof window !== 'undefined') window.__OFFICE__ = OFFICE_API;
 if (typeof document !== 'undefined' && document.getElementById && document.getElementById('stage')) boot();

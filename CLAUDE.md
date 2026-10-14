@@ -10,6 +10,9 @@ GitHub: https://github.com/AhnJung-min/ShrewAICompany (**public** — 회사 시
 - 판매 산출물(`products/<batch>/…`)과 비공개 운영 문서(`products/_private/`: 전략 전체본, 리서치 원본, 신청서 초안)는 `products/` 안에서 커밋하고 비공개 저장소로 push 한다.
 - 전략은 `docs/00_전략_Strategy.md`(공개 요약본)를 기본으로 읽고, 로컬에 `products/_private/00_전략_Strategy_full.md`가 있으면 그 전체본을 우선한다.
 
+## 이어서 할 일
+- 로컬에 `products/_private/RESUME.md`가 있으면 가장 먼저 읽는다 (중단된 작업 목록).
+
 ## 먼저 읽을 것
 - `docs/01_오너_결정사항.md` — 오너가 내린 결정 (전략 문서보다 우선)
 - `docs/00_전략_Strategy.md` — 무엇을 왜 파는가 (수익 모델, 현실 체크, KPI, 중단 기준)
