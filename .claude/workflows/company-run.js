@@ -19,6 +19,7 @@ const PY = A.python || 'python'            // 리눅스 클라우드라면 'pyth
 const BATCH = A.batch || 'batch-001'
 const COUNT = A.count || 4
 const MAX_FIX = A.maxFixRounds === undefined ? 2 : A.maxFixRounds
+const OFFSET = A.staffOffset || 0          // 다른 배치와 동시에 돌 때 직원 번호가 겹치지 않게 (예: 3 → maker-4 부터)
 const M = 'sonnet'
 
 // ───────── 스키마 ─────────
@@ -88,8 +89,9 @@ const GATE = {
 // ───────── 직원 프롬프트 ─────────
 function staffId(role, k) {
   if (role === 'ceo') return 'ceo'
-  if (role === 'maker' || role === 'qa' || role === 'researcher') return `${role}-${k + 1}`
-  return k === 0 ? role : `${role}-${k + 1}`
+  const n = k + OFFSET
+  if (role === 'maker' || role === 'qa' || role === 'researcher') return `${role}-${n + 1}`
+  return n === 0 ? role : `${role}-${n + 1}`
 }
 
 function staffPrompt(role, id, p, task) {
@@ -163,12 +165,12 @@ const results = await pipeline(
 
   // 디자인 (기획자↔디자이너 리뷰 쌍)
   ctx => hire('designer', ctx.k, ctx.p, '기획·디자인',
-    `spec.md 를 읽고 design.md 를 작성한다: 정보 구조, 레이아웃, 서체/색/아이콘 규칙, 각 산출물 파일의 화면/페이지 구성, 썸네일·대표 이미지 브리프(문구, 구도, 색). spec 에 모순·누락이 있으면 spec.md 끝에 "## 디자이너 코멘트" 섹션으로 수정 제안을 남기고 design.md 에서는 합리적으로 해결한다. 끝나면 제작자에게 handoff.`)
+    `spec.md 를 읽고 design.md 를 작성한다: 정보 구조, 레이아웃, 서체/색/아이콘 규칙, 각 산출물 파일의 화면/페이지 구성, 썸네일·대표 이미지 브리프(문구, 구도, 색). 썸네일은 오너 결정에 따라 Claude Design 캔버스에서 따로 만들므로, 브리프는 Shrew AI Company 디자인 시스템(docs/91_외부_연동.md 의 아티팩트 링크) 토큰 이름으로 쓰고 크몽 썸네일 규격(652×488)을 기준으로 한다. spec 에 모순·누락이 있으면 spec.md 끝에 "## 디자이너 코멘트" 섹션으로 수정 제안을 남기고 design.md 에서는 합리적으로 해결한다. 끝나면 제작자에게 handoff.`)
     .then(r => ({ ...ctx, log: { ...ctx.log, designer: r } })),
 
   // 제작
   ctx => hire('maker', ctx.k, ctx.p, '제작',
-    `spec.md 와 design.md 대로 실제 판매 산출물 파일을 모두 만든다(브리프의 deliverables 포함). 문서는 완성된 본문이어야 하며 플레이스홀더·"추후 작성" 금지. 템플릿/코드는 실제로 열리고 동작해야 한다 — 만든 뒤 직접 열어보거나 실행해 확인한다(예: openpyxl 로 다시 로드, python 실행, HTML 은 구조 확인). 썸네일은 디자이너 브리프대로 Pillow 로 PNG 를 만들 수 있으면 만든다. 끝나면 검수자에게 handoff.`,
+    `spec.md 와 design.md 대로 실제 판매 산출물 파일을 모두 만든다(브리프의 deliverables 포함). 문서는 완성된 본문이어야 하며 플레이스홀더·"추후 작성" 금지. 템플릿/코드는 실제로 열리고 동작해야 한다 — 만든 뒤 직접 열어보거나 실행해 확인한다(예: openpyxl 로 다시 로드, python 실행, HTML 은 구조 확인). 썸네일 이미지는 만들지 않는다(Claude Design 캔버스에서 따로 제작). 상세페이지용 미리보기 스크린샷이 필요하면 실제 산출물을 렌더링한 이미지만 쓴다. 끝나면 검수자에게 handoff.`,
     MADE)
     .then(r => ({ ...ctx, made: r, log: { ...ctx.log, maker: r && r.summary } })),
 
