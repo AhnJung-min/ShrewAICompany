@@ -120,6 +120,7 @@ DEFAULT_STAFF = [
     "ceo", "researcher", "pm", "designer",
     "maker-1", "maker-2", "maker-3",
     "qa-1", "qa-2", "marketer", "cfo",
+    "pm-lead", "maker-lead", "qa-lead", "marketer-lead",   # 팀장 (Opus)
 ]
 
 STATES = ("idle", "working", "meeting", "blocked", "done")
@@ -142,7 +143,8 @@ PRODUCT_COLS = ["id", "batch", "title", "model", "platform", "price_krw", "statu
 LEDGER_COLS = ["date", "product_id", "platform", "type", "amount_krw", "note"]
 APPROVAL_COLS = ["id", "product_id", "action", "requested_at", "status", "decided_at", "note"]
 
-INSTANCE_ID_RE = re.compile(r"^([a-z][a-z0-9_]*)(?:-(\d{1,3}))?$")
+# '역할', '역할-번호', 팀장은 '역할-lead' (docs/11_팀_체계.md)
+INSTANCE_ID_RE = re.compile(r"^([a-z][a-z0-9_]*)(?:-(\d{1,3}|lead))?$")
 SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$")
 
 
@@ -168,7 +170,8 @@ def instance_sort_key(instance_id: str) -> tuple[int, int, str]:
     role = role_of(instance_id)
     order = ROLE_ORDER.index(role) if role in ROLES else len(ROLE_ORDER)
     m = INSTANCE_ID_RE.match(instance_id)
-    num = int(m.group(2)) if m and m.group(2) else 0
+    suffix = m.group(2) if m else None
+    num = -1 if suffix == "lead" else int(suffix) if suffix else 0   # 팀장이 같은 역할의 팀원보다 앞
     return (order, num, instance_id)
 
 

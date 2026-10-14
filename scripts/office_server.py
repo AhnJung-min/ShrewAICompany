@@ -6,7 +6,9 @@
 
   GET /            -> ROOT/office/index.html  (없으면 안내 페이지)
   GET /api/state   -> 규약 §2-4 의 JSON  (파일이 없거나 깨져도 500 을 내지 않는다)
-  그 외 GET        -> ROOT/office/ 아래 정적 파일
+  /api/chat*       -> 대표 명령창 (office_chat.py, 토큰·Host·Origin 검사 필수. 규약 §2-5)
+  그 외 GET        -> ROOT/office/ 아래 정적 파일 (office/chat/ 은 오너의 대화 기록이라 제외)
+"/" 를 내줄 때 __SHREW_CHAT_TOKEN__ 자리표시자를 프로세스별 무작위 토큰으로 바꾼다.
 모든 응답에 Cache-Control: no-store.
 """
 from __future__ import annotations
@@ -14,16 +16,19 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import posixpath
 import sys
 import threading
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _common as C  # noqa: E402
+import office_chat  # noqa: E402
+import office_stream  # noqa: E402
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
@@ -191,6 +196,12 @@ class OfficeHandler(SimpleHTTPRequestHandler):
     def end_headers(self) -> None:
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
+        # 다른 사이트가 이 서버의 응답을 가져가거나 화면을 iframe 으로 덮어씌우지 못하게 (CORS 허용 헤더는 일부러 주지 않는다)
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Content-Security-Policy",
+                         "frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; connect-src 'self'")
+        self.send_header("Referrer-Policy", "no-referrer")
         super().end_headers()
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
@@ -210,6 +221,20 @@ class OfficeHandler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
 
     # -- 라우팅 ------------------------------------------------------------
+    def _host_guard(self) -> bool:
+        """DNS 리바인딩 방어: Host 가 127.0.0.1:<포트> 또는 localhost:<포트> 가 아니면 모든 경로(/api/state·정적 파일 포함)를
+        403 으로 막는다. 공격자 도메인이 127.0.0.1 로 풀려도 브라우저는 그 도메인을 Host 로 보내기 때문이다.
+        True 면 통과."""
+        if office_chat.host_allowed(self.headers, self.server.server_address[1]):
+            return True
+        self.close_connection = True
+        body = json.dumps({"error": "허용되지 않는 접속 주소(Host)입니다. http://127.0.0.1:포트 로 여세요."},
+                          ensure_ascii=False).encode("utf-8")
+        self._send_bytes(403, "application/json; charset=utf-8", body, self.command == "HEAD")
+        if self.command in ("POST", "PUT", "PATCH", "DELETE"):
+            self._drain()
+        return False
+
     def _route(self, head_only: bool) -> bool:
         """True 면 처리 완료, False 면 정적 파일 처리로 넘김."""
         path = urlsplit(self.path).path
@@ -223,14 +248,99 @@ class OfficeHandler(SimpleHTTPRequestHandler):
                 body = json.dumps(dict(EMPTY_STATE, now=C.now_iso()), ensure_ascii=False).encode("utf-8")
             self._send_bytes(200, "application/json; charset=utf-8", body, head_only)
             return True
+        if path.rstrip("/") == "/api/stream":
+            # 실시간: 상태 파일·이벤트·트래커가 바뀌는 즉시 SSE 로 밀어준다 (화면은 끊기면 폴링으로 버틴다)
+            if head_only:
+                self._send_bytes(200, "text/event-stream; charset=utf-8", b"", True)
+                return True
+            self.close_connection = True
+            office_stream.serve(self, self.server.root,
+                                lambda r: _guard(lambda: build_state(r), None) or dict(EMPTY_STATE, now=C.now_iso()),
+                                getattr(self.server, "stream_stop", None))
+            return True
+        if office_chat.is_chat_path(path):
+            self._chat(path)
+            return True
         if path.startswith("/api/"):
             body = json.dumps({"error": "not found"}).encode("utf-8")
             self._send_bytes(404, "application/json; charset=utf-8", body, head_only)
             return True
-        if path in ("/", "/index.html") and not (self.server.office_dir / "index.html").is_file():
-            self._send_bytes(200, "text/html; charset=utf-8", FALLBACK_HTML.encode("utf-8"), head_only)
+        if posixpath.normpath("/" + unquote(path).lstrip("/")) in ("/", "/index.html"):
+            index = self.server.office_dir / "index.html"
+            if not index.is_file():
+                self._send_bytes(200, "text/html; charset=utf-8", FALLBACK_HTML.encode("utf-8"), head_only)
+                return True
+            try:
+                page = index.read_bytes()
+            except OSError:
+                return False
+            # 토큰은 올바른 Host·같은 출처의 페이지 요청에만 넣는다 (그 밖에는 자리표시자 그대로 -> 명령창 꺼짐)
+            if office_chat.may_receive_token(self.headers, self.server.server_address[1]):
+                page = office_chat.inject_token(page, self.server.chat.token)
+            self._send_bytes(200, "text/html; charset=utf-8", page, head_only)
+            return True
+        if self._is_private(path):
+            body = json.dumps({"error": "not found"}).encode("utf-8")
+            self._send_bytes(404, "application/json; charset=utf-8", body, head_only)
             return True
         return False
+
+    def _is_private(self, path: str) -> bool:
+        """office/chat/ (오너의 대화 기록)은 정적 파일로 새어 나가면 안 된다. 대소문자·8.3 이름·끝점 같은 윈도우 별칭도
+        실제 경로로 풀어서 비교한다."""
+        try:
+            target = Path(self.translate_path(path)).resolve()
+            chat_dir = (self.server.office_dir / "chat").resolve()
+        except ValueError:
+            return False  # 널 바이트 등: 정적 처리기가 400 으로 답한다
+        except (OSError, RuntimeError):
+            return True
+        return target == chat_dir or chat_dir in target.parents
+
+    # -- 대표 명령창 (/api/chat*) -----------------------------------------------
+    def _send_json(self, status: int, payload: dict[str, Any], head_only: bool = False) -> None:
+        try:
+            body = json.dumps(C.json_safe(payload), ensure_ascii=False, allow_nan=False).encode("utf-8")
+        except (ValueError, TypeError, RecursionError):
+            status, body = 500, '{"error": "내부 오류가 발생했습니다."}'.encode("utf-8")
+        self._send_bytes(status, "application/json; charset=utf-8", body, head_only)
+
+    def _drain(self, limit: int = 1 << 20) -> None:
+        """응답을 보낸 뒤 읽지 않은 요청 본문을 버린다 (안 그러면 닫을 때 연결이 리셋돼 클라이언트가 응답을 못 읽는다)."""
+        try:
+            left = min(int((self.headers.get("Content-Length") or "0").strip()), limit)
+            if left <= 0:
+                return
+            self.connection.settimeout(2.0)
+            while left > 0:
+                chunk = self.rfile.read(min(left, 65536))
+                if not chunk:
+                    break
+                left -= len(chunk)
+        except (OSError, ValueError):
+            pass
+
+    def _chat(self, path: str) -> None:
+        method = self.command
+        if method not in ("GET", "POST"):
+            self._send_json(405, {"error": "허용되지 않는 메서드입니다."}, head_only=(method == "HEAD"))
+            return
+        chat = self.server.chat
+        err = office_chat.check_request(chat, self.headers, self.server.server_address[1])
+        body = None
+        if err is None and method == "POST":
+            try:
+                body = office_chat.read_post_body(self.headers, self.rfile)
+            except office_chat.ChatError as exc:
+                err = exc
+        if err is not None:
+            self.close_connection = True
+            self._send_json(err.status, err.payload())
+            if method == "POST":
+                self._drain()
+            return
+        status, payload = office_chat.dispatch(chat, method, path, body)
+        self._send_json(status, payload)
 
     def _static(self, method: Callable[[], None]) -> None:
         try:
@@ -242,12 +352,36 @@ class OfficeHandler(SimpleHTTPRequestHandler):
                 pass
 
     def do_GET(self) -> None:  # noqa: N802
+        if not self._host_guard():
+            return
         if not self._route(False):
             self._static(super().do_GET)
 
     def do_HEAD(self) -> None:  # noqa: N802
+        if not self._host_guard():
+            return
         if not self._route(True):
             self._static(super().do_HEAD)
+
+    def do_POST(self) -> None:  # noqa: N802 - POST 는 /api/chat* 만 받는다
+        if not self._host_guard():
+            return
+        path = urlsplit(self.path).path
+        if office_chat.is_chat_path(path):
+            self._chat(path)
+        else:
+            self.send_error(HTTPStatus.NOT_IMPLEMENTED, "Unsupported method ('POST')")
+
+    def _other_method(self) -> None:
+        if not self._host_guard():
+            return
+        path = urlsplit(self.path).path
+        if office_chat.is_chat_path(path):
+            self._chat(path)  # 405 JSON
+        else:
+            self.send_error(HTTPStatus.NOT_IMPLEMENTED, f"Unsupported method ({self.command!r})")
+
+    do_PUT = do_DELETE = do_PATCH = do_OPTIONS = _other_method  # noqa: N815 - CORS 사전 요청(OPTIONS)에도 허용 헤더를 주지 않는다
 
 
 class OfficeServer(ThreadingHTTPServer):
@@ -257,7 +391,17 @@ class OfficeServer(ThreadingHTTPServer):
 
     root: Path
     office_dir: Path
+    chat: office_chat.ChatService
     verbose: bool = False
+
+    def server_close(self) -> None:
+        stop = getattr(self, "stream_stop", None)
+        if stop is not None:
+            stop.set()  # 열려 있는 실시간 스트림 연결을 끝낸다
+        chat = getattr(self, "chat", None)
+        if chat is not None:
+            chat.close()  # 돌고 있는 Claude CLI 가 앱 종료 뒤에 남지 않게
+        super().server_close()
 
     def handle_error(self, request, client_address) -> None:
         exc = sys.exc_info()[1]
@@ -273,6 +417,8 @@ def make_server(root=None, port: int = DEFAULT_PORT, verbose: bool = False) -> O
     server.root = root
     server.office_dir = root / "office"
     server.verbose = verbose
+    server.chat = office_chat.ChatService(root, state_provider=build_state)
+    server.stream_stop = threading.Event()   # server_close 때 실시간 스트림을 끝내는 신호
     return server
 
 

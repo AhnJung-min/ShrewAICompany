@@ -30,13 +30,13 @@ def validate_instance_id(instance_id: str) -> str:
     m = C.INSTANCE_ID_RE.match(iid)
     if not m:
         raise C.UsageError(
-            f"직원 ID '{instance_id}' 형식이 올바르지 않습니다. '역할' 또는 '역할-번호' 형식(소문자)이어야 합니다. 예: ceo, maker-2, qa-1"
+            f"직원 ID '{instance_id}' 형식이 올바르지 않습니다. '역할', '역할-번호', 팀장은 '역할-lead' 형식(소문자)이어야 합니다. 예: ceo, maker-2, qa-1, qa-lead"
         )
     if m.group(1) not in C.ROLES:
         raise C.UsageError(
             f"알 수 없는 역할 '{m.group(1)}' (ID: {iid}). 가능한 역할: {', '.join(C.ROLES)}  (병렬 인스턴스는 maker-2 처럼 '-번호')"
         )
-    if m.group(2) is not None:  # qa-01 과 qa-1 이 서로 다른 직원(파일)이 되지 않게 번호 정규화
+    if m.group(2) is not None and m.group(2).isdigit():  # qa-01 과 qa-1 이 서로 다른 직원(파일)이 되지 않게 번호 정규화
         iid = f"{m.group(1)}-{int(m.group(2))}"
     return iid
 

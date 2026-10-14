@@ -22,7 +22,7 @@ import importlib.util
 
 # 서버 모듈들. exe 로 실행될 때는 빌드 시점 사본 대신 프로젝트 폴더의 최신 scripts/ 를 읽는다
 # (코드를 고칠 때마다 exe 를 다시 빌드하지 않아도 되게). 디스크에 없으면 exe 안의 사본을 쓴다.
-SERVER_MODULES = ("_common", "office_chat", "office_server")
+SERVER_MODULES = ("_common", "office_chat", "office_stream", "office_server")
 
 
 def _load_server_modules():

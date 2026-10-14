@@ -504,7 +504,7 @@ class ServerRegressionTests(TempRootCase):
         self.assertRegex(s["now"], ISO_KST)
 
         self.assertIsInstance(s["agents"], list)
-        self.assertEqual(len(s["agents"]), 11)
+        self.assertEqual(len(s["agents"]), len(C.DEFAULT_STAFF))
         for a in s["agents"]:
             for key in ("id", "role", "state", "task", "bubble", "updated_at"):
                 self.assertIsInstance(a[key], str, (key, a))

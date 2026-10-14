@@ -278,7 +278,7 @@ class OfficeCliTests(TempRootCase):
         self.office("reset")
         files = sorted(p.stem for p in (self.root / "office" / "status").glob("*.json"))
         self.assertEqual(files, sorted(C.DEFAULT_STAFF + ["maker-4"]))
-        self.assertEqual(len(C.DEFAULT_STAFF), 11)
+        self.assertEqual(len(C.DEFAULT_STAFF), 15)   # 11명 + 팀장 4명 (docs/11_팀_체계.md)
         for iid in files:
             rec = self.status_file(iid)
             self.assertEqual(rec["state"], "idle", iid)
@@ -304,7 +304,7 @@ class OfficeCliTests(TempRootCase):
         self.assertIn("working 1", out)
         _, out, _ = self.office("show", "--json")
         data = json.loads(out)
-        self.assertEqual(len(data["agents"]), 11)
+        self.assertEqual(len(data["agents"]), len(C.DEFAULT_STAFF))
         self.assertEqual({a["id"]: a["state"] for a in data["agents"]}["qa-1"], "working")
 
     def test_show_empty_root(self):
@@ -684,8 +684,9 @@ class ServerTests(TempRootCase):
             office.log_event("ceo", "note", f"이벤트 {i}", root=self.root)
 
         s = self.state()
-        self.assertEqual(len(s["agents"]), 11)
-        self.assertEqual([a["id"] for a in s["agents"]][:6], ["ceo", "researcher", "pm", "designer", "maker-1", "maker-2"])
+        self.assertEqual(len(s["agents"]), len(C.DEFAULT_STAFF))
+        # 역할 순서대로, 같은 역할 안에서는 팀장(-lead)이 팀원보다 앞
+        self.assertEqual([a["id"] for a in s["agents"]][:6], ["ceo", "researcher", "pm-lead", "pm", "designer", "maker-lead"])
         maker2 = next(a for a in s["agents"] if a["id"] == "maker-2")
         self.assertEqual((maker2["state"], maker2["task"], maker2["product_id"]), ("working", "제작 중", "p1"))
         self.assertEqual(len(s["events"]), 80)

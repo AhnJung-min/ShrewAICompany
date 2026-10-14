@@ -1,14 +1,14 @@
 export const meta = {
   name: 'notion-template-run',
-  description: 'Shrew AI Company 노션 템플릿 생산 라인: CEO 킥오프 → 템플릿별 기획·디자인·노션 제작·검수 루프·마케팅·법무 → CEO 출고 판정 (직원 전원 Sonnet)',
+  description: 'Shrew AI Company 노션 템플릿 생산 라인 (팀 체계): CEO 킥오프 → 팀원 작업 + 팀장 결재(G1~G4) → CEO 출고 판정. 팀원 Sonnet, 팀장·CEO Opus',
   whenToUse: '판매용 노션 템플릿을 만들 때. args: { batch, workshopPageUrl, briefs: [...], maxFixRounds?, root?, python? }',
   phases: [
-    { title: '대표실', detail: 'CEO 킥오프: 배치 목표, 미적 기준 확정', model: 'sonnet' },
-    { title: '기획·디자인', detail: '템플릿 구조 사양서 + 노션 미적 디자인 가이드', model: 'sonnet' },
-    { title: '제작', detail: '노션 작업실 안에 템플릿을 실제로 구축', model: 'sonnet' },
-    { title: '검수', detail: '노션을 직접 열어 적대적 검수 → 수정 루프', model: 'sonnet' },
-    { title: '마케팅·법무', detail: '판매 문구, 라이선스·규정 점검, 장부 등록', model: 'sonnet' },
-    { title: '출고 판정', detail: 'CEO 최종 게이트 + 배치 보고서', model: 'sonnet' },
+    { title: '대표실', detail: 'CEO 킥오프: 배치 목표, 미적 기준 확정', model: 'opus' },
+    { title: '기획·디자인', detail: '사양서 → G1 기획팀장, 노션 미적 디자인 가이드', model: 'sonnet' },
+    { title: '제작', detail: '노션 작업실 안에 템플릿 구축 → G2 제작팀장', model: 'sonnet' },
+    { title: '검수', detail: '검수자 보고 → G3 품질팀장 판정 → 수정 루프', model: 'sonnet' },
+    { title: '마케팅·법무', detail: '판매 문구, 라이선스·규정 점검 → G4 사업운영팀장', model: 'sonnet' },
+    { title: '출고 판정', detail: 'G5 CEO 최종 게이트 + 배치 보고서', model: 'opus' },
   ],
 }
 
@@ -18,7 +18,9 @@ const PY = A.python || 'python'
 const BATCH = A.batch || 'notion-001'
 const WORKSHOP = A.workshopPageUrl
 const MAX_FIX = A.maxFixRounds === undefined ? 2 : A.maxFixRounds
-const M = 'sonnet'
+const MEMBER = 'sonnet'
+const LEAD = 'opus'
+const LEADS = { ceo: 1, 'pm-lead': 1, 'maker-lead': 1, 'qa-lead': 1, 'marketer-lead': 1 }   // docs/11_팀_체계.md
 const NOTION = 'mcp__4e22fdb6-6c1b-4813-b6f3-be008f96b591__'
 const NOTION_TOOLS = ['notion-fetch', 'notion-search', 'notion-create-pages', 'notion-update-page', 'notion-create-database', 'notion-update-data-source', 'notion-create-view', 'notion-update-view', 'notion-query-data-sources', 'notion-move-pages'].map(t => NOTION + t).join(',')
 
@@ -89,7 +91,7 @@ const KICKOFF = {
 }
 
 function staffId(role, k) {
-  if (role === 'ceo') return 'ceo'
+  if (LEADS[role]) return role
   if (role === 'maker' || role === 'qa') return `${role}-${k + 1}`
   return k === 0 ? role : `${role}-${k + 1}`
 }
@@ -100,7 +102,8 @@ function staffPrompt(role, id, p, task) {
   return [
     `너는 Shrew AI Company(땃쥐 AI 컴퍼니)의 직원이다. 역할: ${role} / 인스턴스 ID: ${id} / 배치: ${BATCH} (판매용 노션 템플릿).`,
     `프로젝트 루트: ${ROOT} (상대경로면 현재 작업 디렉터리 기준. 먼저 절대경로로 확인한 뒤 파일 도구에는 절대경로를 쓴다.)`,
-    `1) ${ROOT}/.claude/agents/${role}.md 를 읽고 그 페르소나·품질 기준·절대 규칙을 따른다. 공통 규약: ${ROOT}/docs/90_시스템_인터페이스.md, 오너 결정(최우선): ${ROOT}/docs/01_오너_결정사항.md.`,
+    LEADS[role] ? '너는 팀장급(Opus)이다. 지시·검토·결정이 일이고, 직접 고치는 것은 1회 수정 후 남은 작은 문제뿐이다.' : '너는 팀원(Sonnet)이다. 팀장의 관문 결정이 최종이다.',
+    `1) ${ROOT}/.claude/agents/${role}.md 를 읽고 그 페르소나·품질 기준·절대 규칙을 따른다. 팀 체계(최우선): ${ROOT}/docs/11_팀_체계.md, 공통 규약: ${ROOT}/docs/90_시스템_인터페이스.md, 오너 결정: ${ROOT}/docs/01_오너_결정사항.md.`,
     `2) 오피스 상태 보고: 시작 즉시 ${PY} "${ROOT}/scripts/office.py" status ${id} working "<지금 하는 일, 20자 내외>"${prod} / 넘길 때 ${PY} "${ROOT}/scripts/office.py" event ${id} handoff "<누구에게 무엇을>"${prod} / 끝나기 전 ${PY} "${ROOT}/scripts/office.py" status ${id} done "<한 일>"${prod}. (실패해도 본업은 계속하고 보고에 적는다.)`,
     `3) 트래커는 ${PY} "${ROOT}/scripts/tracker.py" 로만 수정한다. 정확한 플래그는 먼저 --help 로 확인한다.`,
     `작업 폴더(문서 산출물): ${dir}`,
@@ -115,9 +118,31 @@ function staffPrompt(role, id, p, task) {
 
 function hire(role, k, p, phaseTitle, task, schema) {
   const id = staffId(role, k)
-  const opts = { label: `${id}${p ? ':' + p.id : ''}`, phase: phaseTitle, model: M }
+  const opts = { label: `${id}${p ? ':' + p.id : ''}`, phase: phaseTitle, model: LEADS[role] ? LEAD : MEMBER }
   if (schema) opts.schema = schema
   return agent(staffPrompt(role, id, p, task), opts)
+}
+
+const LGATE = {
+  type: 'object',
+  properties: {
+    decision: { type: 'string', enum: ['APPROVED', 'REVISE', 'DROP'] },
+    reasons: { type: 'array', items: { type: 'string' } },
+    fixes_requested: { type: 'array', items: { type: 'string' } },
+    fixed_myself: { type: 'array', items: { type: 'string' } },
+  },
+  required: ['decision', 'reasons', 'fixes_requested', 'fixed_myself'],
+}
+// 팀장 관문: 검토 → (REVISE 면) 팀원 1회 수정 → 팀장 확정
+async function leadGate(lead, member, k, p, phaseTitle, gateName, block, reviewTask, reviseTask) {
+  let gate = await hire(lead, k, p, phaseTitle,
+    `${gateName}: ${reviewTask}\n결정: APPROVED / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP. 결정과 이유를 "${block}" 블록으로 남긴다.`, LGATE)
+  if (gate && gate.decision === 'REVISE') {
+    await hire(member, k, p, phaseTitle, `${gateName}에서 팀장이 수정을 요청했다. 모두 반영한다.\n${JSON.stringify(gate.fixes_requested, null, 1)}\n${reviseTask}`)
+    gate = await hire(lead, k, p, phaseTitle,
+      `${gateName} 재검토(마지막): 남은 작은 문제는 직접 고치고 APPROVED 로 확정하거나, 여전히 안 되면 DROP. 이번에는 REVISE 를 쓰지 않는다. "${block}" 블록을 갱신한다.\n지난 요청: ${JSON.stringify(gate.fixes_requested)}`, LGATE)
+  }
+  return { approved: !!gate && gate.decision === 'APPROVED', gate }
 }
 
 if (!WORKSHOP) return { error: 'args.workshopPageUrl is required' }
@@ -140,28 +165,40 @@ const results = await pipeline(
 
   (_, p, k) => hire('pm', k, p, '기획·디자인',
     `템플릿 구조 사양서 spec.md 를 작성한다: 대상 사용자와 그들이 매일/매주 하는 일, 페이지 트리(홈 → 하위 페이지), 각 데이터베이스(이름, 속성 이름·타입·옵션, 관계/롤업/수식), DB별 뷰(종류, 필터, 정렬, 그룹), 홈 화면 구성, 샘플 데이터 행(구체 값), "처음 시작하기" 가이드 문구, 완성 기준(Definition of Done), 검수 체크리스트. 브리프보다 더 적게 만들어도 된다 — 꼭 필요한 것만. CEO 지시: ${p.ceo_notes}`)
-    .then(() => ({ p, k })),
+    .then(() => leadGate('pm-lead', 'pm', k, p, '기획·디자인', 'G1 사양 승인', '## 기획팀장 승인',
+      'spec.md 가 대상 사용자의 실제 루틴, 꼭 필요한 DB·뷰만, 완성 기준, 검수 체크리스트를 갖췄는지, 기존 템플릿과 겹치지 않는지 본다. 기록은 spec.md 끝에.',
+      'spec.md 를 고친다.'))
+    .then(g1 => g1.approved ? { p, k } : { p, k, dropped: 'G1 기획팀장 DROP' }),
 
-  ctx => hire('designer', ctx.k, ctx.p, '기획·디자인',
+  ctx => ctx.dropped ? ctx : hire('designer', ctx.k, ctx.p, '기획·디자인',
     `spec.md 를 읽고 design.md 를 쓴다: 이 템플릿의 노션 미적 가이드 — 아이콘 세트(페이지·DB별로 정확한 아이콘 식별자 또는 이모지), accent 색 1개와 쓰는 곳, 커버(없음 또는 노션 기본 단색 커버 URL), 홈 화면 와이어프레임(어느 블록이 어느 column 에), callout/토글 사용 위치, 뷰별 표시 속성, 샘플 데이터 문체. 위 미적 기준을 이 템플릿에 구체 값으로 적용한다. spec 에서 미적으로 지저분해지는 부분(속성 과다, 뷰 과다)이 있으면 spec.md 끝에 "## 디자이너 코멘트"로 줄이자고 제안하고 design.md 에서는 줄인 안으로 설계한다. 판매 썸네일 브리프(문구, 구도)도 마지막에 적는다.`)
     .then(() => ctx),
 
-  ctx => hire('maker', ctx.k, ctx.p, '제작',
+  ctx => ctx.dropped ? ctx : hire('maker', ctx.k, ctx.p, '제작',
     `spec.md 와 design.md 대로 노션 작업실 페이지 아래에 템플릿을 실제로 구축한다: 템플릿 루트 페이지(아이콘·커버 포함) → 데이터베이스(속성·옵션·관계) → 뷰 → 샘플 행 → 홈 화면 레이아웃(columns, 링크된 DB 뷰, callout) → "처음 시작하기" 토글 → 하단 "Made by Shrew AI". 만든 뒤 notion-fetch 로 루트와 각 DB를 다시 열어 사양과 맞는지 직접 확인하고, 어긋난 곳은 고친다. 모든 URL과 데이터 소스 ID를 build_log.md 에 기록한다. 끝나면 검수자에게 handoff.`,
     BUILT)
-    .then(b => ({ ...ctx, built: b })),
+    .then(async b => {
+      if (!b) return { ...ctx, built: null }
+      const g2 = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작', 'G2 제작 승인', '## 제작팀장 승인',
+        `노션 루트(${b.root_page_url})와 모든 DB 를 notion-fetch 로 직접 열어 spec·design 대로 지어졌는지(DB 스키마, 뷰, 샘플 행, 홈 레이아웃, 아이콘 통일, 가이드 토글) 확인한다. 기록은 build_log.md 끝에.`,
+        '노션에서 고치고 build_log.md 를 갱신한다.')
+      return g2.approved ? { ...ctx, built: b } : { ...ctx, built: b, dropped: 'G2 제작팀장 DROP' }
+    }),
 
   async ctx => {
-    if (!ctx.built) return { ...ctx, passed: false, qa: null }
+    if (ctx.dropped || !ctx.built) return { ...ctx, passed: false, qa: null }
     const qaTask = round => `노션에 지어진 템플릿을 적대적으로 검수한다(라운드 ${round}). 루트: ${ctx.built.root_page_url}. notion-fetch 로 홈, 모든 하위 페이지, 모든 DB(데이터 소스 스키마와 뷰 포함)를 직접 연다. 두 축으로 본다:\n(1) 기능: spec 의 완성 기준·검수 체크리스트, 관계/롤업/수식 동작, 뷰 필터·정렬, 샘플 데이터, 가이드 문구, 깨진 링크·빈 블록·플레이스홀더.\n(2) 미적: 위 미적 기준 항목 하나하나 — 아이콘 통일, 색 절제, 첫 화면 3초 규칙, 속성/뷰 과다, 헤딩 계층, 여백, 다크모드 가독성, 오탈자.\n"돈 받고 팔 수 있다"를 반박하려고 시도하라. blocker/major 가 하나라도 있으면 FAIL, 미적 점수 7 미만이어도 FAIL. 확신이 없으면 FAIL. qa_report.md 에 라운드별로 누적 기록한다.\n제작자 보고: ${JSON.stringify(ctx.built)}`
+    const leadTask = (round, rep) => `G3 품질 판정(라운드 ${round}): 검수자 보고를 읽고 가장 심각한 결함은 notion-fetch 로 직접 다시 확인한 뒤 최종 PASS/FAIL 을 낸다. blocker/major 가 남거나 미적 점수 7 미만이거나 확신이 없으면 FAIL. defects 에는 제작자가 고칠 것만. qa_report.md 끝에 "## 품질팀장 판정" 블록을 남긴다.\n검수자 보고: ${JSON.stringify(rep)}`
     let round = 1
-    let qa = await hire('qa', ctx.k, ctx.p, '검수', qaTask(round), QA)
+    let rep = await hire('qa', ctx.k, ctx.p, '검수', qaTask(round), QA)
+    let qa = await hire('qa-lead', ctx.k, ctx.p, '검수', leadTask(round, rep), QA)
     while (qa && qa.verdict === 'FAIL' && round <= MAX_FIX) {
       log(`${ctx.p.id}: 검수 FAIL (기능 ${qa.score_0_10}, 미적 ${qa.aesthetic_score_0_10}) → 수정 라운드 ${round}`)
       await hire('maker', ctx.k, ctx.p, '검수',
         `검수자가 찾은 결함을 노션에서 모두 고친다. 고친 뒤 notion-fetch 로 다시 열어 확인하고, qa_report.md 아래에 "## 수정 내역 (라운드 ${round})"을 덧붙인다. build_log.md 도 갱신한다.\n결함 목록:\n${JSON.stringify(qa.defects, null, 1)}`)
       round++
-      qa = await hire('qa', ctx.k, ctx.p, '검수', qaTask(round), QA)
+      rep = await hire('qa', ctx.k, ctx.p, '검수', qaTask(round), QA)
+      qa = await hire('qa-lead', ctx.k, ctx.p, '검수', leadTask(round, rep), QA)
     }
     const passed = !!qa && qa.verdict === 'PASS'
     log(`${ctx.p.id}: 검수 ${passed ? 'PASS' : '최종 불합격'}${qa ? ` (기능 ${qa.score_0_10}, 미적 ${qa.aesthetic_score_0_10})` : ''}`)
@@ -175,7 +212,11 @@ const results = await pipeline(
     const cfo = await hire('cfo', ctx.k, ctx.p, '마케팅·법무',
       `compliance.md 를 쓴다: 구매자 라이선스(개인·사내 사용 허용, 재판매·재배포 금지) 문안, Notion 상표 사용 주의(상품명에 Notion 을 브랜드처럼 쓰지 않기, "for Notion" 표기 정도), 샘플 데이터 가상 여부, 아이콘/커버 출처, AI 활용 표시, 플랫폼별 정책 체크, 오너 세무 할 일. listing.md 의 규정 위반 문구는 직접 고친다. 이상 없으면 tracker.py 로 상품을 products.csv 에 등록한다(배치 ${BATCH}, 모델 '노션 템플릿' 성격이 드러나게, 플랫폼·가격 포함, 상태 qa_passed).`,
       CFO)
-    return { ...ctx, cfo, compliant: !!cfo && cfo.ok }
+    if (!cfo || !cfo.ok) return { ...ctx, cfo, compliant: false }
+    const g4 = await leadGate('marketer-lead', 'marketer', ctx.k, ctx.p, '마케팅·법무', 'G4 판매 승인', '## 사업운영팀장 승인',
+      'listing.md 와 compliance.md 를 함께 본다: 플랫폼 규정, 정직성(과장 없음, AI 활용 표시), 라이선스 문안, Notion 상표 사용, 키워드·제목, 가격 근거, 트래커 등록. 기록은 compliance.md 끝에.',
+      'listing.md 와 compliance.md 를 고친다.')
+    return { ...ctx, cfo, compliant: g4.approved }
   },
 
   async ctx => {
