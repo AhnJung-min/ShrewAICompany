@@ -1,0 +1,4 @@
+﻿id,batch,title,model,platform,price_krw,status,created_at,listed_url,notes
+dev-growth-os,notion-001,개발 성장 OS - 학습 회고 프로젝트 취업 준비 (노션 템플릿),template,kmong,9900,draft,2026-10-15T01:07:46+09:00,,"Notion template. 가격은 하한 가설(9900~19900), 마케터가 확정. 1순위 크몽, 노션마켓/Gumroad는 R26 확인 후"
+solo-freelancer-hq,notion-001,1인 프리랜서 본부 - 서비스 문의 작업 장부 (노션 템플릿),template,kmong,14900,draft,2026-10-15T01:07:46+09:00,,"Notion template. 가격은 하한 가설(14900~24900), 마케터가 확정. 파동 B 후보: R23에 따라 공개 시점은 오너 결정(D-1)"
+weekly-retro-lite,notion-001,주간 회고 라이트 (무료 노션 템플릿),template,kmong,0,draft,2026-10-15T01:07:46+09:00,,"Notion template, 무료(유입용). 0원 고정 권장. 크몽 무료 등록 가능 여부 미확인"

@@ -1,0 +1,1453 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI REVENUE CO. · 픽셀 오피스</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23f2c14e'/%3E%3Crect x='2' y='2' width='12' height='12' fill='%23a3283a'/%3E%3Crect x='5' y='5' width='6' height='6' fill='%23f6d58a'/%3E%3C/svg%3E">
+<!-- Galmuri(갈무리) 픽셀 폰트: 선택 사항. 오프라인이면 아래 폰트 스택의 시스템 폰트/monospace 로 대체된다. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css" media="print" onload="this.media='all';window.dispatchEvent(new Event('galmuri'))">
+<style>
+:root{
+  --bg:#1d1928; --bg2:#262034; --card:#2f2840; --card2:#3a3252; --line:#4d4469; --lineHi:#6e6296;
+  --ink:#f4eddb; --mute:#a99fc6; --dim:#7d7399;
+  --gold:#f2c14e; --green:#6cc070; --red:#e86a6a; --blue:#5aa9e6; --orange:#f09a4a;
+  --purple:#a98be8; --teal:#4ec3b5; --pink:#f08cb0;
+  --font:"Galmuri11","Galmuri9","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 var(--font)}
+body{min-height:100vh;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:8px 8px}
+code,kbd{font-family:var(--font);background:#1a1625;border:1px solid var(--line);padding:0 5px;color:var(--gold);word-break:break-all}
+b{font-weight:700}
+
+/* ---- header ---- */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1720px;margin:0 auto;padding:10px 14px}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;letter-spacing:.08em}
+.brand small{color:var(--mute);font-weight:400;letter-spacing:0;font-size:12px}
+.logo{position:relative;width:24px;height:24px;background:var(--gold);box-shadow:inset -3px -3px 0 #b88a1d,inset 3px 3px 0 #ffe08a}
+.logo::after{content:"AI";position:absolute;inset:0;display:grid;place-items:center;font-size:10px;color:#3a2a08}
+.spacer{flex:1}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 9px;border:2px solid;letter-spacing:.12em}
+.badge.live{color:var(--green);border-color:var(--green);background:rgba(108,192,112,.1)}
+.badge.live::before{content:"";width:7px;height:7px;background:var(--green);animation:blink 1.4s steps(2) infinite}
+.badge.demo{color:#2b2233;background:var(--gold);border-color:#b88a1d;animation:blink 1.6s steps(2) infinite}
+.badge.boot{color:var(--mute);border-color:var(--line)}
+@keyframes blink{50%{opacity:.45}}
+.meta{color:var(--mute);font-size:12px}
+.tog{display:inline-flex;align-items:center;gap:6px;color:var(--mute);font-size:12px;cursor:pointer;user-select:none}
+.tog input{accent-color:var(--gold)}
+.hint{max-width:1692px;margin:0 auto 10px;padding:7px 12px;border:2px dashed var(--gold);color:var(--gold);background:rgba(242,193,78,.08);font-size:12px}
+.hint[hidden]{display:none}
+@media (min-width:1720px){.hint{margin-left:auto;margin-right:auto}}
+
+/* ---- layout ---- */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 392px;gap:14px;max-width:1720px;margin:0 auto;padding:0 14px 28px;align-items:start}
+@media (max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}}
+.stage-wrap{min-width:0}
+.stage-frame{position:relative;padding:6px;background:#5a3c25;box-shadow:0 0 0 2px #2b1b10,inset 0 0 0 2px #7d5636,0 6px 0 0 rgba(0,0,0,.35)}
+.stage-box{display:flex;justify-content:center;background:#2a1a10;line-height:0}
+#stage{display:block;image-rendering:crisp-edges;image-rendering:pixelated;touch-action:manipulation;cursor:default;max-width:100%}
+#stage.pointer{cursor:pointer}
+.ribbon{position:absolute;right:16px;bottom:16px;z-index:3;pointer-events:none;font-size:11px;padding:2px 8px;letter-spacing:.14em;background:var(--gold);color:#2b2233;border:2px solid #b88a1d;animation:blink 1.6s steps(2) infinite}
+.ribbon[hidden]{display:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:12px;padding:8px 10px;background:var(--card);border:2px solid var(--line);font-size:12px}
+.legend .sum{color:var(--mute);margin-right:4px}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.lg i{width:9px;height:9px;background:var(--c);box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.lg b{color:var(--c)}
+.empty-note{color:var(--mute)}
+
+/* ---- tooltip ---- */
+.tip{position:absolute;z-index:6;min-width:170px;max-width:260px;max-height:300px;overflow:hidden;pointer-events:none;background:#17131f;border:2px solid var(--gold);padding:7px 9px;font-size:12px;line-height:1.45;box-shadow:3px 3px 0 rgba(0,0,0,.5)}
+.tip[hidden]{display:none}
+.tt-h{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.tt-h b{min-width:0;overflow-wrap:anywhere}
+.dot{width:9px;height:9px;display:inline-block;background:var(--c,#999)}
+.tt-role{font-size:11px;padding:0 6px;border:1px solid var(--c);color:var(--c)}
+.tt-r{display:grid;grid-template-columns:34px 1fr;gap:6px}
+.tt-r>span{color:var(--mute)}
+.tt-r>i{font-style:normal;word-break:keep-all;overflow-wrap:anywhere}
+
+/* ---- side panel ---- */
+.panel{min-width:0}
+@media (min-width:1101px){.panel{max-height:calc(100vh - 70px);overflow:auto;padding-right:4px;position:sticky;top:8px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}}
+.card{position:relative;background:var(--card);margin:0 0 14px;padding:10px 12px 12px;box-shadow:0 -2px 0 0 var(--line),0 2px 0 0 var(--line),-2px 0 0 0 var(--line),2px 0 0 0 var(--line)}
+.card h2{display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:13px;color:var(--gold);letter-spacing:.04em}
+.card h2 small{color:var(--dim);font-weight:400;font-size:11px;letter-spacing:0}
+.card h2 .n{margin-left:auto;color:var(--mute);font-size:11px;font-weight:400}
+.kpis{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.kpi{min-width:0;background:var(--card2);padding:8px 10px;border-left:3px solid var(--c,var(--line))}
+.kpi.wide{grid-column:1/-1}
+.kpi .l{color:var(--mute);font-size:11px}
+.kpi .v{font-size:19px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v small{font-size:12px;color:var(--mute);font-weight:400;margin-left:3px}
+.kpi .s{color:var(--dim);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kpi .v.sm{font-size:15px}
+.kpi .v.xs{font-size:12px}
+.kpi .v.neg{color:var(--red)}
+.kpi .v.pos{color:var(--green)}
+.seg{display:flex;height:8px;margin:6px 0 6px;background:#1a1625;gap:1px}
+.seg i{display:block;background:var(--c);min-width:3px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;font-size:11px;line-height:1.5;padding:0 6px;border:1px solid var(--c,var(--line));color:var(--c,var(--ink));background:rgba(0,0,0,.18);white-space:nowrap}
+.chip.solid{background:var(--c);color:#241c33;border-color:var(--c)}
+.list{list-style:none;margin:0;padding:0}
+.scroll{max-height:330px;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.ev{display:grid;grid-template-columns:42px minmax(0,1fr);gap:2px 6px;align-items:baseline;padding:5px 2px;border-bottom:1px dashed rgba(255,255,255,.08);font-size:12px}
+.ev .t{color:var(--dim);font-size:11px}
+.ev .who{display:flex;gap:5px;align-items:center;flex-wrap:wrap;min-width:0}
+.ev .who b{min-width:0;overflow-wrap:anywhere}
+.ev .msg{grid-column:2;color:var(--ink);overflow-wrap:anywhere}
+.ev .ety{color:var(--c);font-size:11px}
+.ev.new{animation:flash 1.6s ease-out}
+@keyframes flash{0%{background:rgba(242,193,78,.35)}100%{background:transparent}}
+.ap{min-width:0;padding:7px 8px;margin-bottom:6px;background:var(--card2);border-left:3px solid var(--gold);font-size:12px;overflow-wrap:anywhere}
+.ap .r1{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ap .r1 b{min-width:0;overflow-wrap:anywhere}
+.ap .r2{color:var(--mute);font-size:11px;margin-top:2px}
+.ap code{user-select:all}
+.note{margin:8px 0 0;padding:6px 8px;background:rgba(242,193,78,.08);border:1px dashed rgba(242,193,78,.5);color:var(--mute);font-size:11px;line-height:1.6}
+.none{color:var(--dim);font-size:12px;padding:4px 2px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{color:var(--dim);font-weight:400;text-align:left;font-size:11px;padding:0 4px 4px}
+.tbl td{padding:4px;border-top:1px dashed rgba(255,255,255,.08);vertical-align:top}
+.tbl td.r,.tbl th.r{text-align:right;white-space:nowrap}
+.tbl .ttl{overflow-wrap:anywhere}
+.tbl .sub{display:block;color:var(--dim);font-size:10px}
+.foot{margin:6px 0 0;color:var(--dim);font-size:11px;text-align:right}
+@media (max-width:520px){.top{padding:8px 10px}.layout{padding:0 8px 24px}.kpi .v{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.badge,.ribbon,.badge.live::before{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true"></span><span>AI REVENUE CO.</span><small>AI 직원 오피스 · Pixel Office</small></div>
+  <div class="spacer"></div>
+  <label class="tog"><input type="checkbox" id="namesToggle"> 이름표 보기</label>
+  <span class="meta" id="updated">연결 중…</span>
+  <span class="badge boot" id="modeBadge">BOOT</span>
+</header>
+<div class="hint" id="demoHint" hidden>DEMO 모드 · 실데이터 보려면: <code>python scripts/office_server.py</code> 실행 후 <code>http://127.0.0.1:8765</code></div>
+
+<noscript><p class="hint" style="display:block">이 대시보드는 JavaScript 가 필요합니다.</p></noscript>
+<main class="layout">
+  <section class="stage-wrap" aria-label="AI 오피스">
+    <div class="stage-frame">
+      <div class="stage-box" id="stageBox"><canvas id="stage" width="896" height="704" aria-label="픽셀 아트 오피스: 부서별 AI 직원 현황" role="img"></canvas></div>
+      <div class="ribbon" id="ribbon" hidden>DEMO</div>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <aside class="panel" aria-label="경영 현황">
+    <section class="card" id="cardKpi"><h2>경영 지표 <small>KPI</small></h2><div class="kpis" id="kpis"></div></section>
+    <section class="card" id="cardAp"><h2>오너 승인 대기 <small>Approvals</small><span class="n" id="apCount"></span></h2><div id="approvals"></div></section>
+    <section class="card" id="cardFeed"><h2>실시간 이벤트 <small>Live feed</small><span class="n" id="feedCount"></span></h2><ul class="list scroll" id="feed"></ul></section>
+    <section class="card" id="cardProd"><h2>최근 상품 <small>Products</small><span class="n" id="prodCount"></span></h2><div class="scroll" id="products"></div></section>
+  </aside>
+</main>
+
+<script>
+'use strict';
+/* =====================================================================
+ * AI REVENUE CO. — 픽셀 오피스 대시보드 (단일 파일, 외부 이미지/스크립트 없음)
+ *   1. CONSTANTS      상수·라벨·방 배치
+ *   2. UTILS          해시/RNG/색/포맷
+ *   3. DRAW HELPERS   픽셀 프리미티브, 5x7 비트맵 폰트, 베이크 캐시
+ *   4. LAYOUT         좌석 생성/배정 (순수 함수)
+ *   5. SCENE (static) 바닥·벽·방 장식 (오프스크린에 1회 렌더)
+ *   6. FURNITURE      책상·테이블·모니터 (동적)
+ *   7. SPRITES        캐릭터·말풍선
+ *   8. ACTORS         상태→애니메이션/이동, 렌더 루프
+ *   9. DATA           /api/state 폴링, 정규화, DEMO 시뮬레이터
+ *  10. UI PANEL       KPI/이벤트/승인/상품, 툴팁
+ *  11. BOOT
+ * ===================================================================== */
+
+/* ============================== 1. CONSTANTS ============================== */
+const LW = 448, LH = 352;                 // 논리 해상도(px). 정수 배율로 확대한다.
+const POLL_MS = 2000, PROBE_DEMO_MS = 6000;
+const API_URL = '/api/state';
+const DEMO_HINT = '실데이터 보려면: python scripts/office_server.py 실행 후 http://127.0.0.1:8765';
+
+const ROLES = {
+  ceo:       { ko: '대표',              short: '대표',   en: 'CEO',        room: 'ceo',      color: '#f2c14e', order: 0 },
+  researcher:{ ko: '리서처',            short: '리서처', en: 'Researcher', room: 'research', color: '#6cc070', order: 1 },
+  pm:        { ko: '기획자',            short: '기획',   en: 'PM',         room: 'design',   color: '#5aa9e6', order: 2 },
+  designer:  { ko: '디자이너',          short: '디자인', en: 'Designer',   room: 'design',   color: '#f08cb0', order: 3 },
+  maker:     { ko: '제작자',            short: '제작',   en: 'Maker',      room: 'coding',   color: '#f09a4a', order: 4 },
+  qa:        { ko: '검수자',            short: '검수',   en: 'QA',         room: 'testing',  color: '#e86a6a', order: 5 },
+  marketer:  { ko: '마케터',            short: '마케팅', en: 'Marketer',   room: 'market',   color: '#a98be8', order: 6 },
+  cfo:       { ko: '재무·컴플라이언스', short: '재무',   en: 'CFO',        room: 'finance',  color: '#4ec3b5', order: 7 },
+};
+const ID_ABBR = { researcher: 'rsch', marketer: 'mktg', designer: 'dsgn' };
+
+const STATE_KEYS = ['idle', 'working', 'meeting', 'blocked', 'done'];
+const STATES = {
+  idle:    { ko: '대기',   color: '#9aa7bd' },
+  working: { ko: '작업 중', color: '#6cc070' },
+  meeting: { ko: '회의 중', color: '#5aa9e6' },
+  blocked: { ko: '막힘',   color: '#e86a6a' },
+  done:    { ko: '완료',   color: '#f2c14e' },
+};
+const EVENT_TYPES = {
+  status:           { ko: '상태',     color: '#9aa7bd' },
+  handoff:          { ko: '인수인계', color: '#5aa9e6' },
+  decision:         { ko: '결정',     color: '#f2c14e' },
+  defect:           { ko: '결함',     color: '#e86a6a' },
+  approval_request: { ko: '승인요청', color: '#f09a4a' },
+  note:             { ko: '메모',     color: '#a98be8' },
+};
+const PRODUCT_STATUS_ORDER = ['draft', 'in_production', 'qa_failed', 'qa_passed', 'awaiting_owner', 'listed', 'retired'];
+const PRODUCT_STATUS = {
+  draft:          { ko: '초안',      color: '#9aa7bd' },
+  in_production:  { ko: '제작 중',   color: '#f09a4a' },
+  qa_failed:      { ko: '검수 탈락', color: '#e86a6a' },
+  qa_passed:      { ko: '검수 통과', color: '#6cc070' },
+  awaiting_owner: { ko: '오너 대기', color: '#f2c14e' },
+  listed:         { ko: '판매 중',   color: '#4ec3b5' },
+  retired:        { ko: '종료',      color: '#7d7399' },
+  unknown:        { ko: '상태 없음', color: '#9aa7bd' },      // 서버가 status 가 빈 상품을 'unknown' 으로 센다
+};
+const APPROVAL_ACTIONS = {
+  publish_listing: '상품 게시', price_change: '가격 변경', send_proposal: '제안서 발송', create_account: '계정 생성',
+};
+
+const FONT_STACK = '"Galmuri9","Galmuri11","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",monospace';
+const FONT_EMOJI = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+const FONT_KO9 = '9px ' + FONT_STACK + ',' + FONT_EMOJI;
+const FONT_EN7 = '7px "Galmuri7","Galmuri9",monospace';
+
+/* 방(zone) 사각형 (논리 px). 벽/문틈은 5장에서 그린다. */
+const ROOMS = {
+  ceo:     { ko: '대표실',     en: 'CEO',       x: 154, y: 44,  w: 140, h: 164 },
+  research:{ ko: '리서치',     en: 'Research',  x: 4,   y: 44,  w: 144, h: 80  },
+  design:  { ko: '기획·디자인', en: 'Designing', x: 4,   y: 132, w: 144, h: 76  },
+  market:  { ko: '마케팅',     en: 'Marketing', x: 300, y: 44,  w: 144, h: 80  },
+  finance: { ko: '재무·법무',   en: 'Finance',   x: 300, y: 132, w: 144, h: 76  },
+  coding:  { ko: '제작',       en: 'Coding',    x: 4,   y: 216, w: 290, h: 128 },
+  testing: { ko: '검수',       en: 'Testing',   x: 300, y: 216, w: 144, h: 128 },
+};
+const ROOM_IDS = Object.keys(ROOMS);
+const SIGNS = {   // 나무 표지판 위치(좌상단)
+  ceo: [158, 48], research: [8, 50], design: [8, 134], market: [304, 50], finance: [304, 134], coding: [8, 218], testing: [304, 218],
+};
+/* 책상 격자: 좌석 x,y = 캐릭터 발 위치. 책상은 x-9 ~ x+19, 모니터는 오른쪽. show = 기본으로 보이는 책상 수 */
+const DESKS = {
+  ceo:     { x0: 224, dx: 0,  y0: 86,  dy: 0,  cols: 1, rows: 1, show: 1, big: true },
+  research:{ x0: 24,  dx: 30, y0: 112, dy: 0,  cols: 3, rows: 1, show: 3 },
+  design:  { x0: 24,  dx: 30, y0: 196, dy: 0,  cols: 3, rows: 1, show: 3 },
+  market:  { x0: 316, dx: 30, y0: 112, dy: 0,  cols: 3, rows: 1, show: 3 },
+  finance: { x0: 316, dx: 30, y0: 196, dy: 0,  cols: 2, rows: 1, show: 2 },
+  coding:  { x0: 24,  dx: 30, y0: 280, dy: 42, cols: 8, rows: 2, show: 8 },
+};
+/* 둥근 회의 테이블. main=true 이면 그 방의 정규 좌석이 테이블 둘레(검수실) */
+const TABLES = {
+  ceo:     { cx: 224, cy: 184, rx: 20, ry: 9,  top: '#d9a56a', rim: '#9a6236' },
+  research:{ cx: 126, cy: 102, rx: 12, ry: 6,  top: '#d9a56a', rim: '#9a6236' },
+  design:  { cx: 124, cy: 192, rx: 14, ry: 7,  top: '#e8d7a8', rim: '#a98f55' },
+  market:  { cx: 420, cy: 102, rx: 12, ry: 6,  top: '#d9a56a', rim: '#9a6236' },
+  finance: { cx: 410, cy: 192, rx: 14, ry: 7,  top: '#cfd6e2', rim: '#7e889a' },
+  coding:  { cx: 272, cy: 300, rx: 12, ry: 6,  top: '#d9a56a', rim: '#9a6236' },
+  testing: { cx: 372, cy: 286, rx: 28, ry: 14, top: '#d4e8ee', rim: '#7da3b3', main: true },
+};
+const CEO_STAND = [[200, 128], [248, 128], [178, 146], [270, 146], [200, 168], [248, 168]];
+const WINDOWS = [{ x: 112, y: 5, w: 22, h: 19 }, { x: 166, y: 5, w: 22, h: 19 }, { x: 260, y: 5, w: 22, h: 19 }, { x: 418, y: 5, w: 22, h: 19 }];
+
+/* ============================== 2. UTILS ============================== */
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function hash32(str) {                       // FNV-1a
+  let h = 0x811c9dc5; str = String(str);
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return h >>> 0;
+}
+function ihash(a, b, c) {                     // 정수 3개 → 32bit 해시 (바닥 무늬 등)
+  let h = (Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263) + Math.imul(c | 0, 2147483629)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const _rgbCache = new Map();
+function rgbOf(hex) {
+  let v = _rgbCache.get(hex);
+  if (!v) { const n = parseInt(hex.slice(1), 16); v = [(n >> 16) & 255, (n >> 8) & 255, n & 255]; _rgbCache.set(hex, v); }
+  return v;
+}
+function mixHex(a, b, t) {                    // 6자리 #rrggbb 만 지원
+  if (t <= 0) return a;
+  const A = rgbOf(a), B = rgbOf(b), m = (i) => Math.round(A[i] + (B[i] - A[i]) * t);
+  return '#' + ((1 << 24) | (m(0) << 16) | (m(1) << 8) | m(2)).toString(16).slice(1);
+}
+const shade = (c, t) => mixHex(c, '#000000', t);
+const tint = (c, t) => mixHex(c, '#ffffff', t);
+
+function str(v) { return v == null ? '' : String(v); }
+function num(v) { const n = Number(v); return isFinite(n) ? n : 0; }
+/* 라벨 표 조회는 자기 속성만: id 가 "constructor"/"toString" 이어도 Object.prototype 이 끼어들지 않게 한다 */
+const _hop = Object.prototype.hasOwnProperty;
+function own(tbl, k) { return typeof k === 'string' && _hop.call(tbl, k) ? tbl[k] : undefined; }
+/* 길이 제한 (코드포인트 단위로 자르고 … 를 붙인다). 아주 긴 작업명/ID 가 툴팁·패널을 망가뜨리지 않게 */
+function clip(s, n) {
+  s = str(s);
+  if (s.length <= n) return s;
+  const a = Array.from(s);
+  return a.length <= n ? s : a.slice(0, Math.max(1, n - 1)).join('') + '…';
+}
+/* 글자(grapheme) 단위 앞 n 개 — 이모지(ZWJ/변형 선택자)를 반쪽으로 자르지 않는다 */
+const _seg = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+function firstGraphemes(s, n) {
+  s = str(s);
+  if (_seg) { const out = []; for (const g of _seg.segment(s)) { if (out.length >= n) break; out.push(g.segment); } return out.join(''); }
+  return Array.from(s).slice(0, n).join('');
+}
+function esc(s) {
+  return str(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fmtNum(n) {
+  const v = Math.round(num(n)), a = Math.abs(v);
+  const digits = a >= 1e15 ? BigInt(a).toString() : String(a);          // 1e21 이상도 "1e+21" 이 아닌 전체 자릿수로
+  return (v < 0 ? '-' : '') + digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function fmtKRW(n) {
+  const v = Math.round(num(n));
+  return (v < 0 ? '-' : '') + '₩' + fmtNum(Math.abs(v));
+}
+function relTime(iso, now) {
+  const t = Date.parse(iso);
+  if (!isFinite(t)) return '-';
+  let s = Math.round(((now == null ? Date.now() : now) - t) / 1000);
+  if (s < 0) s = 0;
+  if (s < 5) return '방금 전';
+  if (s < 60) return s + '초 전';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + '분 전';
+  const h = Math.floor(m / 60);
+  return h < 24 ? h + '시간 전' : Math.floor(h / 24) + '일 전';
+}
+function hhmm(iso) {
+  const t = Date.parse(iso);
+  if (!isFinite(t)) return '--:--';
+  const d = new Date(t), p = (n) => (n < 10 ? '0' : '') + n;
+  return p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function prefixOf(id) { return str(id).trim().toLowerCase().split('-')[0]; }
+function numSuffix(id) { const m = /-(\d+)$/.exec(str(id)); return m ? parseInt(m[1], 10) : 0; }
+/* 에이전트 → 역할 키 (id 접두어 우선, 없으면 role 필드). 알 수 없으면 null */
+function roleKeyOf(a) {
+  const p = prefixOf(a && a.id);
+  if (own(ROLES, p)) return p;
+  const r = str(a && a.role).trim().toLowerCase();
+  return own(ROLES, r) ? r : null;
+}
+function roomOf(a) { const k = roleKeyOf(a); return k ? ROLES[k].room : 'ceo'; }
+function roleTitle(a) { const k = roleKeyOf(a); return k ? ROLES[k].ko : (str(a && a.role) || '직원'); }
+function normState(s) { s = str(s).trim().toLowerCase(); return own(STATES, s) ? s : 'idle'; }
+function cmpAgent(a, b) {
+  const ka = roleKeyOf(a), kb = roleKeyOf(b);
+  const oa = ka ? ROLES[ka].order : 99, ob = kb ? ROLES[kb].order : 99;
+  return oa - ob || numSuffix(a.id) - numSuffix(b.id) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+/* 캐릭터 팔레트: id 해시 → 결정적 (머리색/스타일/피부/셔츠색 ...) */
+const SKIN_C = ['#fddcb5', '#f6cba0', '#e8ad80', '#cf9168', '#a46b45', '#74482f'];
+const HAIR_C = ['#2b2233', '#4a3426', '#7a4a2a', '#b5712c', '#e1b24a', '#c4452d', '#7c5cb0', '#3a6ea5', '#d77fa1', '#8d8d99', '#1f6f6a'];
+const SHIRT_C = ['#e25d5d', '#e59a3a', '#e8cf45', '#69b858', '#3fb7a3', '#4d9be0', '#7a6be0', '#c76ad1', '#f08cb0', '#f4efe4', '#5e6b82', '#8a5a3c'];
+const PANTS_C = ['#3d4a6b', '#4a4a55', '#6b5a46', '#2f3f56', '#55435f'];
+const HAIR_STYLES = 6;
+function paletteFor(id, roleKey) {
+  const r = mulberry32(hash32(id)), pick = (a) => a[Math.floor(r() * a.length)];
+  const pal = {
+    skin: pick(SKIN_C), hair: pick(HAIR_C), hairStyle: Math.floor(r() * HAIR_STYLES), shirt: pick(SHIRT_C), pants: pick(PANTS_C),
+    phase: r() * 6.2832, blush: r() < 0.6, acc: 'none', roleColor: ROLES[roleKey] ? ROLES[roleKey].color : '#bbbbbb',
+  };
+  const roll = r();
+  if (roleKey === 'ceo') { pal.acc = 'tie'; pal.shirt = '#2f3550'; pal.pants = '#262b40'; }
+  else if (roleKey === 'researcher' || roleKey === 'cfo') pal.acc = 'glasses';
+  else if (roleKey === 'designer') pal.acc = roll < 0.6 ? 'beret' : 'none';
+  else if (roleKey === 'maker') pal.acc = roll < 0.5 ? 'headphones' : 'none';
+  else if (roleKey === 'qa') pal.acc = roll < 0.4 ? 'glasses' : 'none';
+  pal.shirtD = shade(pal.shirt, 0.22);
+  pal.hairD = shade(pal.hair, 0.25);
+  pal.hairL = tint(pal.hair, 0.22);
+  pal.skinD = shade(pal.skin, 0.12);
+  return pal;
+}
+
+/* ============================ 3. DRAW HELPERS ============================ */
+function R(g, x, y, w, h, c) { g.fillStyle = c; g.fillRect(x, y, w, h); }
+function ell(g, cx, cy, rx, ry, c) {          // 채운 픽셀 타원 (스캔라인)
+  g.fillStyle = c;
+  for (let dy = -ry; dy <= ry; dy++) {
+    const k = 1 - (dy * dy) / ((ry + 0.5) * (ry + 0.5));
+    const w = Math.round((rx + 0.5) * Math.sqrt(Math.max(0, k)));
+    if (w > 0) g.fillRect(cx - w, cy + dy, w * 2, 1);
+  }
+}
+function ring(g, cx, cy, rx, ry, c) {         // 타원 테두리
+  g.fillStyle = c;
+  let prev = 0;
+  for (let dy = -ry; dy <= ry; dy++) {
+    const k = 1 - (dy * dy) / ((ry + 0.5) * (ry + 0.5));
+    const w = Math.round((rx + 0.5) * Math.sqrt(Math.max(0, k)));
+    if (dy === -ry || dy === ry) g.fillRect(cx - w, cy + dy, w * 2, 1);
+    else { const e = Math.max(1, Math.abs(w - prev)); g.fillRect(cx - w, cy + dy, e, 1); g.fillRect(cx + w - e, cy + dy, e, 1); }
+    prev = w;
+  }
+}
+function box(g, x, y, w, h, c) {              // 1px 사각 테두리
+  g.fillStyle = c; g.fillRect(x, y, w, 1); g.fillRect(x, y + h - 1, w, 1); g.fillRect(x, y, 1, h); g.fillRect(x + w - 1, y, 1, h);
+}
+function line(g, x0, y0, x1, y1, c) {
+  g.fillStyle = c; x0 |= 0; y0 |= 0; x1 |= 0; y1 |= 0;
+  const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  for (let n = 0; n < 400; n++) {
+    g.fillRect(x0, y0, 1, 1);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x0 += sx; }
+    if (e2 < dx) { err += dx; y0 += sy; }
+  }
+}
+/* 5x7 비트맵 폰트 (러그의 "AI REVENUE CO." 용). 필요한 글자만 정의 */
+const GLYPH = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  I: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'],
+  R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+  V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+  N: ['#...#', '##..#', '##..#', '#.#.#', '#..##', '#..##', '#...#'],
+  U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+  O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  '.': ['..', '..', '..', '..', '..', '..', '##'],
+  ' ': ['...', '...', '...', '...', '...', '...', '...'],
+};
+function pixW(s) { let w = 0; for (const ch of s) { const gl = GLYPH[ch]; w += (gl ? gl[0].length : 3) + 1; } return Math.max(0, w - 1); }
+function pixText(g, s, x, y, c) {
+  g.fillStyle = c;
+  let cx = x;
+  for (const ch of s) {
+    const gl = GLYPH[ch];
+    if (!gl) { cx += 4; continue; }
+    for (let r = 0; r < gl.length; r++) {
+      const row = gl[r];
+      for (let q = 0; q < row.length; q++) if (row[q] === '#') g.fillRect(cx + q, y + r, 1, 1);
+    }
+    cx += gl[0].length + 1;
+  }
+}
+
+/* 현재 정수 배율. 베이크 캐시는 배율이 바뀌면 비운다. */
+let S = 2;
+const bakeCache = new Map();
+function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function bake(key, w, h, fn) {
+  let c = bakeCache.get(key);
+  if (!c) {
+    c = makeCanvas(w * S, h * S);
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false; g.setTransform(S, 0, 0, S, 0, 0);
+    fn(g);
+    bakeCache.set(key, c);
+  }
+  return c;
+}
+function blit(g, c, x, y, w, h) { g.drawImage(c, x, y, w, h); }
+function setFont(g, f) { g.font = f; }
+/* 외곽선 텍스트 (표지판/이름표용) */
+function textOutlined(g, s, x, y, fill, edge) {
+  g.fillStyle = edge;
+  g.fillText(s, x + 1, y); g.fillText(s, x - 1, y); g.fillText(s, x, y + 1); g.fillText(s, x, y - 1);
+  g.fillStyle = fill; g.fillText(s, x, y);
+}
+
+/* ============================== 4. LAYOUT (좌석) ============================== */
+/* 테이블 둘레 좌석 k. main(검수실)은 정규 좌석 6개가 테이블 둘레, 그 밖은 6칸 뒤부터 바깥 고리(서 있음) */
+function tableSeatPos(T, k, main) {
+  const rx = T.rx, ry = T.ry, hx = Math.max(9, Math.round(rx * 0.6));
+  const yb = T.cy + 1 - Math.round(ry * 0.3);        // 테이블 뒤쪽
+  const ys = T.cy + Math.round(ry * 0.4) + 3;         // 옆
+  const yf = T.cy + ry + 8;                           // 앞쪽
+  const TL = [T.cx - hx, yb], TR = [T.cx + hx, yb], L = [T.cx - rx - 8, ys], RR = [T.cx + rx + 8, ys];
+  const BL = [T.cx - hx, yf], BR = [T.cx + hx, yf];
+  const order = main ? [TL, TR, L, RR, BL, BR] : [TL, TR, BL, BR, L, RR];
+  if (k < 6) return { x: order[k][0], y: order[k][1], sit: true };
+  const j = k - 6, ring = Math.floor(j / 8), a = 0.35 + (j % 8) * 0.78 + ring * 0.39;      // 8명마다 바깥 고리 하나 더 (같은 자리에 겹쳐 서지 않게)
+  return { x: Math.round(T.cx + (T.rx + 24 + ring * 9) * Math.cos(a)), y: Math.round(T.cy + (T.ry + 20 + ring * 7) * Math.sin(a)) + 2, sit: false };
+}
+function standSeat(roomId, k) {                       // 책상 좌석이 모자랄 때 서 있는 자리
+  const Rm = ROOMS[roomId];
+  if (roomId === 'ceo' && k < CEO_STAND.length) return { x: CEO_STAND[k][0], y: CEO_STAND[k][1] };
+  const kk = roomId === 'ceo' ? k - CEO_STAND.length : k;
+  const cols = Math.max(1, Math.floor((Rm.w - 24) / 22));
+  return { x: Rm.x + 14 + (kk % cols) * 22, y: Rm.y + Rm.h - 8 - Math.floor(kk / cols) * 10 };
+}
+function deskCap(roomId) { const D = DESKS[roomId]; return D ? D.cols * D.rows : 0; }
+function clampToRoom(roomId, p) {
+  const Rm = ROOMS[roomId];
+  return { x: clamp(p.x, Rm.x + 8, Rm.x + Rm.w - 8), y: clamp(p.y, Rm.y + 30, Rm.y + Rm.h - 2) };
+}
+/* roomId 의 idx 번째 좌석. 모자라면 방 안에 자동 생성 (순수 함수) */
+function seatFor(roomId, idx) {
+  if (!ROOMS[roomId]) roomId = 'ceo';
+  idx = Math.max(0, idx | 0);
+  if (roomId === 'testing') {
+    const p = clampToRoom(roomId, tableSeatPos(TABLES.testing, idx, true));
+    return { room: roomId, idx, kind: idx < 6 ? 'table' : 'stand', x: p.x, y: p.y, sit: idx < 6 };
+  }
+  const D = DESKS[roomId], cap = deskCap(roomId);
+  if (D && idx < cap) {
+    const col = idx % D.cols, row = Math.floor(idx / D.cols);
+    return { room: roomId, idx, kind: 'desk', x: D.x0 + D.dx * col, y: D.y0 + D.dy * row, sit: true };
+  }
+  const p = clampToRoom(roomId, standSeat(roomId, idx - cap));
+  return { room: roomId, idx, kind: 'stand', x: p.x, y: p.y, sit: false };
+}
+/* 회의 테이블 k 번째 자리 */
+function meetSeat(roomId, k) {
+  const T = TABLES[roomId] || TABLES.ceo;
+  if (!ROOMS[roomId]) roomId = 'ceo';
+  const p = clampToRoom(roomId, tableSeatPos(T, k, !!T.main));
+  return { room: roomId, idx: k, kind: 'meet', x: p.x, y: p.y, sit: k < 6 };
+}
+/* 좌석 배정: list=[{id,...}] (roomOf 로 방 결정), prev=Map(id→{room,idx}) 이면 가능한 한 유지 */
+function allocateSeats(list, prev) {
+  const used = {}, out = new Map();
+  const setOf = (r) => used[r] || (used[r] = new Set());
+  for (const a of list) {
+    const room = roomOf(a), p = prev && prev.get(a.id);
+    if (p && p.room === room && !setOf(room).has(p.idx)) { setOf(room).add(p.idx); out.set(a.id, { room, idx: p.idx }); }
+  }
+  const rest = list.filter((a) => !out.has(a.id)).sort(cmpAgent);
+  for (const a of rest) {
+    const room = roomOf(a), set = setOf(room);
+    let i = roleKeyOf(a) ? 0 : deskCap(room);              // 알 수 없는 역할(intern-1 등)은 남의 책상(대표 책상 등)에 앉히지 않고 서 있는 자리부터
+    while (set.has(i)) i++;
+    set.add(i); out.set(a.id, { room, idx: i });
+  }
+  return out;
+}
+
+/* ============================== 5. SCENE (static) ============================== */
+const BOOKC = ['#d9534f', '#f0ad4e', '#5bc0de', '#5cb85c', '#9b59b6', '#e67e22', '#3498db', '#ecf0f1', '#e84393', '#1abc9c'];
+
+function drawFloor(g) {
+  const tones = ['#e3ad70', '#dba365', '#e9b87d', '#d79d5e'];
+  R(g, 0, 0, LW, LH, '#d79d5e');
+  for (let row = 0; 42 + row * 8 < LH; row++) {
+    const y = 42 + row * 8, off = (row * 13 + (row & 1) * 9) % 32;
+    for (let x = -off; x < LW; x += 32) {
+      const k = ihash(x, row, 7), x0 = Math.max(0, x), x1 = Math.min(LW, x + 32);
+      R(g, x0, y, x1 - x0, 7, tones[k & 3]);
+      R(g, x0, y + 7, x1 - x0, 1, '#b8794a');
+      if (x >= 0) R(g, x, y, 1, 8, '#b8794a');
+      const gx = x + 3 + ((k >> 4) % 16);
+      if (gx > 0 && gx + 8 < x1) R(g, gx, y + 2 + ((k >> 9) % 3), 7, 1, 'rgba(255,255,255,.14)');
+      if (((k >> 12) & 3) === 0 && gx + 3 > 0 && gx + 8 < x1) R(g, gx + 3, y + 4, 5, 1, 'rgba(120,60,20,.14)');
+    }
+  }
+}
+function rugRect(g, x, y, w, h, c1, c2, c3) {
+  R(g, x, y, w, h, c1); R(g, x + 2, y + 2, w - 4, h - 4, c2);
+  g.fillStyle = c3;
+  for (let i = x + 5; i < x + w - 5; i += 2) { g.fillRect(i, y + 4, 1, 1); g.fillRect(i, y + h - 5, 1, 1); }
+  for (let j = y + 5; j < y + h - 5; j += 2) { g.fillRect(x + 4, j, 1, 1); g.fillRect(x + w - 5, j, 1, 1); }
+}
+function rugRound(g, cx, cy, rx, ry, c1, c2, c3) {
+  ell(g, cx, cy, rx, ry, c1); ell(g, cx, cy, rx - 2, ry - 2, c2); ring(g, cx, cy, rx - 5, Math.max(2, ry - 4), c3);
+}
+function drawCeoRug(g) {
+  const x = 170, y = 100, w = 108, h = 56, label = 'AI REVENUE CO.';
+  R(g, x, y, w, h, '#6e1b29'); R(g, x + 2, y + 2, w - 4, h - 4, '#d9a441'); R(g, x + 3, y + 3, w - 6, h - 6, '#a3283a');
+  R(g, x + 6, y + 6, w - 12, h - 12, '#8c2032'); box(g, x + 6, y + 6, w - 12, h - 12, '#c0394f');
+  for (let i = 0; i < 8; i++) { R(g, x + 12 + i * 12, y + 10, 3, 3, '#d9a441'); R(g, x + 12 + i * 12, y + h - 13, 3, 3, '#d9a441'); }
+  for (let i = 0; i < h; i += 3) { R(g, x - 2, y + i, 2, 1, '#e9d9a8'); R(g, x + w, y + i, 2, 1, '#e9d9a8'); }
+  const tw = pixW(label), tx = x + ((w - tw) >> 1), ty = y + ((h - 7) >> 1);
+  pixText(g, label, tx + 1, ty + 1, '#4a0f1a'); pixText(g, label, tx, ty, '#f6d58a');
+}
+function drawRugs(g) {
+  drawCeoRug(g);
+  rugRound(g, 224, 190, 34, 16, '#4a3f7a', '#6a5fa8', '#8f86cc');
+  rugRect(g, 10, 98, 104, 24, '#476f53', '#5d8f6b', '#8cbf9a'); rugRound(g, 126, 104, 22, 12, '#476f53', '#6f9f7b', '#a4d4b0');
+  rugRect(g, 10, 182, 104, 24, '#6b5a9a', '#8774b8', '#b0a2dc'); rugRound(g, 124, 195, 24, 12, '#6b5a9a', '#8774b8', '#b0a2dc');
+  rugRect(g, 304, 98, 96, 24, '#a24d70', '#c4668c', '#e8a0bc'); rugRound(g, 420, 104, 22, 12, '#a24d70', '#c4668c', '#e8a0bc');
+  rugRect(g, 304, 182, 90, 24, '#5d6676', '#8b93a3', '#b4bccb'); rugRound(g, 410, 195, 24, 12, '#5d6676', '#8b93a3', '#b4bccb');
+  rugRect(g, 8, 246, 250, 84, '#34508a', '#456bad', '#6c92cf'); rugRound(g, 272, 304, 22, 12, '#34508a', '#456bad', '#6c92cf');
+  rugRound(g, 372, 291, 54, 34, '#3f8f86', '#6fc3b4', '#9fe0d1');
+}
+
+function drawTopWall(g) {
+  R(g, 0, 0, LW, 42, '#b9ddee');
+  for (let x = 0; x < LW; x += 16) R(g, x, 0, 1, 25, '#aed4e8');
+  R(g, 0, 0, LW, 2, '#d6eef8');
+  R(g, 0, 25, LW, 2, '#f4efe4'); R(g, 0, 27, LW, 1, '#cfc7b0');
+  R(g, 0, 28, LW, 12, '#78afd1');
+  for (let x = 2; x < LW; x += 22) { R(g, x, 30, 18, 8, '#6aa2c6'); R(g, x, 30, 18, 1, '#5a8fb2'); R(g, x, 37, 18, 1, '#8bbddb'); }
+  R(g, 0, 40, LW, 2, '#ebe3cd');
+  R(g, 0, 42, LW, 3, 'rgba(70,35,10,.30)');
+}
+function drawWindowFrame(g, w) {
+  R(g, w.x - 2, w.y - 2, w.w + 4, w.h + 4, '#f6f1e3'); box(g, w.x - 2, w.y - 2, w.w + 4, w.h + 4, '#d8cfb8');
+  R(g, w.x - 3, w.y + w.h + 2, w.w + 6, 2, '#e9e0c8'); R(g, w.x - 3, w.y + w.h + 4, w.w + 6, 1, 'rgba(0,0,0,.18)');
+  R(g, w.x, w.y, w.w, w.h, '#8fd3f4');
+}
+function drawFrameArt(g, x, y, w, h, kind) {         // 벽 액자
+  R(g, x, y, w, h, '#b88a1d'); R(g, x + 1, y + 1, w - 2, h - 2, '#f4efe4'); R(g, x + 2, y + 2, w - 4, h - 4, kind ? '#9bd0ee' : '#e8d9b0');
+  if (kind) { R(g, x + 2, y + h - 7, w - 4, 5, '#6cc070'); R(g, x + 3, y + h - 9, 4, 3, '#4a9e5c'); R(g, x + w - 8, y + h - 8, 4, 3, '#4a9e5c'); }
+  else { ell(g, x + (w >> 1), y + (h >> 1), 3, 3, '#d9a441'); R(g, x + (w >> 1) - 1, y + (h >> 1) - 1, 2, 2, '#fff3c4'); }
+}
+function drawPoster(g, x, w, h, col, icon) {
+  const y = 8, cx = x + (w >> 1), cy = y + h - 10;
+  R(g, x, y, w, h, '#2b2233'); R(g, x + 1, y + 1, w - 2, h - 2, '#fffaf0'); R(g, x + 2, y + 2, w - 4, 8, col);
+  R(g, x + 4, y + 4, w - 8, 1, 'rgba(255,255,255,.55)');
+  R(g, cx - 2, y - 1, 4, 2, 'rgba(255,255,255,.7)');
+  g.fillStyle = col;
+  if (icon === 'star') { g.fillRect(cx - 1, cy - 4, 2, 8); g.fillRect(cx - 4, cy - 1, 8, 2); g.fillRect(cx - 3, cy - 3, 1, 1); g.fillRect(cx + 2, cy - 3, 1, 1); g.fillRect(cx - 3, cy + 2, 1, 1); g.fillRect(cx + 2, cy + 2, 1, 1); }
+  else if (icon === 'mega') { g.fillRect(cx - 5, cy - 1, 3, 3); g.fillRect(cx - 2, cy - 3, 2, 7); g.fillRect(cx, cy - 4, 2, 9); g.fillRect(cx + 3, cy - 1, 1, 3); }
+  else if (icon === 'bars') { g.fillRect(cx - 5, cy + 1, 2, 3); g.fillRect(cx - 1, cy - 2, 2, 6); g.fillRect(cx + 3, cy - 5, 2, 9); }
+  else if (icon === 'heart') { g.fillRect(cx - 3, cy - 3, 2, 2); g.fillRect(cx + 1, cy - 3, 2, 2); g.fillRect(cx - 4, cy - 1, 8, 2); g.fillRect(cx - 3, cy + 1, 6, 1); g.fillRect(cx - 2, cy + 2, 4, 1); g.fillRect(cx - 1, cy + 3, 2, 1); }
+  else { g.fillRect(cx - 4, cy - 3, 2, 2); g.fillRect(cx + 2, cy + 1, 2, 2); line(g, cx + 3, cy - 3, cx - 3, cy + 3, col); }
+}
+function drawBookshelf(g, x, yb, w, h) {
+  const y = yb - h, rows = 3, rh = Math.floor((h - 2) / rows);
+  R(g, x, y, w, h, '#7a4a26'); R(g, x + 1, y + 1, w - 2, h - 2, '#4d2f19');
+  for (let r = 0; r < rows; r++) {
+    const sy = y + 1 + r * rh;
+    let bx = x + 2;
+    while (bx < x + w - 3) {
+      const k = ihash(x, r, bx), bw = 2 + (k % 2), bh = rh - 3 - ((k >> 3) % 3);
+      R(g, bx, sy + rh - 1 - bh, bw, bh, BOOKC[k % BOOKC.length]);
+      R(g, bx, sy + rh - 1 - bh, 1, bh, 'rgba(255,255,255,.2)');
+      bx += bw + (((k >> 5) % 4) === 0 ? 1 : 0);
+    }
+    R(g, x + 1, sy + rh - 1, w - 2, 1, '#9a6334');
+  }
+  R(g, x, y, w, 1, '#a8703c'); R(g, x, yb, w, 2, 'rgba(0,0,0,.25)');
+}
+function drawPlant(g, x, yb) {
+  R(g, x - 4, yb - 6, 8, 6, '#b5683a'); R(g, x - 5, yb - 7, 10, 2, '#c97a46'); R(g, x - 4, yb - 1, 8, 1, '#8f4f28');
+  ell(g, x, yb - 13, 6, 5, '#3f8f4f'); ell(g, x - 5, yb - 11, 3, 4, '#2f7a43'); ell(g, x + 5, yb - 11, 3, 4, '#2f7a43'); ell(g, x, yb - 18, 3, 4, '#56ad63');
+  R(g, x - 2, yb - 15, 1, 3, '#7ed08a'); R(g, x + 2, yb - 20, 1, 2, '#9be6a4');
+  R(g, x - 5, yb, 10, 1, 'rgba(0,0,0,.22)');
+}
+function drawCooler(g, x, yb) {
+  R(g, x, yb - 14, 12, 14, '#d8dee8'); R(g, x, yb - 14, 12, 2, '#eef2f8'); R(g, x + 1, yb - 9, 10, 1, '#b4bccb');
+  R(g, x + 3, yb - 12, 2, 2, '#4a90c4'); R(g, x + 7, yb - 12, 2, 2, '#d9534f');
+  R(g, x + 2, yb - 27, 8, 13, '#9fd8f2'); R(g, x + 2, yb - 27, 8, 2, '#c8ecfa'); R(g, x + 3, yb - 24, 1, 8, '#e8f8ff'); R(g, x + 4, yb - 29, 4, 2, '#9fd8f2');
+  R(g, x, yb, 12, 1, 'rgba(0,0,0,.25)');
+}
+function drawWhiteboard(g, x, y) {
+  R(g, x + 4, y + 26, 2, 7, '#7d8492'); R(g, x + 38, y + 26, 2, 7, '#7d8492'); R(g, x + 2, y + 32, 6, 1, 'rgba(0,0,0,.25)'); R(g, x + 36, y + 32, 6, 1, 'rgba(0,0,0,.25)');
+  R(g, x, y, 44, 26, '#c9d0da'); R(g, x + 2, y + 2, 40, 20, '#fbfbf6'); R(g, x + 2, y + 22, 40, 2, '#aeb6c4');
+  R(g, x + 5, y + 5, 9, 6, '#8cc3ec'); R(g, x + 17, y + 5, 9, 6, '#f4c26b'); R(g, x + 30, y + 5, 9, 6, '#9ad49a');
+  R(g, x + 14, y + 8, 3, 1, '#444'); R(g, x + 26, y + 8, 4, 1, '#444');
+  R(g, x + 5, y + 14, 18, 1, '#e86a6a'); R(g, x + 5, y + 17, 25, 1, '#5aa9e6'); R(g, x + 32, y + 14, 6, 5, '#ffe27a'); R(g, x + 34, y + 16, 2, 1, '#c9a227');
+}
+function drawKanban(g, x, y) {
+  R(g, x + 4, y + 20, 2, 6, '#7d8492'); R(g, x + 78, y + 20, 2, 6, '#7d8492');
+  R(g, x, y, 84, 20, '#7a4a26'); R(g, x + 1, y + 1, 82, 18, '#d9c9a0');
+  const cols = ['#ffe27a', '#ff9ec0', '#9fe0a0', '#9fd0ff'];
+  for (let c = 0; c < 3; c++) {
+    R(g, x + 3 + c * 27, y + 3, 25, 1, '#7a4a26');
+    for (let n = 0; n < 3; n++) { const k = ihash(c, n, 5); if ((k & 3) === 3 && n > 0) continue; R(g, x + 4 + c * 27 + n * 8, y + 6 + ((k >> 3) & 3) * 3, 6, 5, cols[k % 4]); }
+  }
+}
+function drawSafe(g, x, yb) {
+  const y = yb - 27;
+  R(g, x + 2, yb - 1, 4, 2, '#3a3f4f'); R(g, x + 20, yb - 1, 4, 2, '#3a3f4f');
+  R(g, x, y, 26, 27, '#4c5361'); R(g, x + 1, y + 1, 24, 25, '#7b8494'); R(g, x + 3, y + 3, 20, 21, '#5d6574');
+  ell(g, x + 11, y + 13, 5, 5, '#c9ced8'); ell(g, x + 11, y + 13, 3, 3, '#59606d'); R(g, x + 11, y + 9, 1, 3, '#f4efe4');
+  R(g, x + 18, y + 10, 3, 7, '#e0c46c'); R(g, x + 18, y + 10, 3, 1, '#fff0b0'); R(g, x, yb, 26, 1, 'rgba(0,0,0,.25)');
+}
+function drawCabinet(g, x, yb) {
+  const y = yb - 30;
+  R(g, x, y, 14, 30, '#8e99aa'); R(g, x + 1, y + 1, 12, 28, '#b3bdcb');
+  for (let i = 0; i < 3; i++) { const dy = y + 2 + i * 9; R(g, x + 2, dy, 10, 8, '#c5cdd9'); R(g, x + 2, dy + 7, 10, 1, '#8e99aa'); R(g, x + 5, dy + 3, 4, 1, '#59606d'); R(g, x + 4, dy + 1, 6, 2, '#f4efe4'); }
+  R(g, x, yb, 14, 1, 'rgba(0,0,0,.25)');
+}
+function drawPrinter(g, x, yb) {
+  R(g, x, yb - 10, 20, 10, '#cfd5df'); R(g, x, yb - 10, 20, 2, '#eef2f8'); R(g, x + 2, yb - 7, 16, 2, '#3a4052'); R(g, x + 4, yb - 14, 12, 5, '#fffaf0'); R(g, x + 15, yb - 5, 3, 1, '#6cc070');
+  R(g, x, yb, 20, 1, 'rgba(0,0,0,.25)');
+}
+function drawChecklist(g, x, y) {
+  R(g, x, y, 44, 20, '#7a4a26'); R(g, x + 1, y + 1, 42, 18, '#fbfbf6');
+  for (let i = 0; i < 3; i++) { const ry = y + 4 + i * 5; R(g, x + 4, ry, 3, 3, '#6cc070'); R(g, x + 10, ry + 1, 20 - i * 3, 1, '#9aa7bd'); }
+  R(g, x + 35, y + 8, 5, 4, '#c0392b'); R(g, x + 34, y + 7, 1, 1, '#c0392b'); R(g, x + 40, y + 7, 1, 1, '#c0392b'); R(g, x + 34, y + 12, 1, 1, '#c0392b'); R(g, x + 40, y + 12, 1, 1, '#c0392b');
+}
+function drawCan(g, x, yb) { R(g, x, yb - 10, 8, 10, '#6b7280'); R(g, x - 1, yb - 11, 10, 2, '#8b93a3'); R(g, x + 2, yb - 7, 1, 5, '#59606d'); R(g, x, yb, 8, 1, 'rgba(0,0,0,.25)'); }
+
+function drawWallsAndFrame(g) {
+  const wallH = (x, y, w) => {
+    R(g, x, y, w, 3, '#f4efe4'); R(g, x, y + 3, w, 1, '#d3cbb4'); R(g, x, y + 4, w, 3, '#78afd1'); R(g, x, y + 7, w, 1, '#5f95b8'); R(g, x, y + 8, w, 3, 'rgba(70,35,10,.28)');
+  };
+  const wallV = (x, y, h) => {
+    R(g, x, y, 6, h, '#d8d0ba'); R(g, x + 1, y, 4, h, '#f4efe4'); R(g, x + 6, y, 3, h, 'rgba(70,35,10,.25)');
+    R(g, x, y + h, 6, 4, '#78afd1'); R(g, x, y + h + 3, 6, 1, '#5f95b8'); R(g, x, y + h + 4, 7, 2, 'rgba(70,35,10,.25)');
+  };
+  for (const xx of [148, 294]) for (const [a, b] of [[44, 84], [112, 160], [188, 204]]) wallV(xx, a, b - a);
+  for (const [a, b] of [[4, 60], [86, 154]]) wallH(a, 124, b - a);
+  for (const [a, b] of [[294, 356], [384, 444]]) wallH(a, 124, b - a);
+  for (const [a, b] of [[4, 70], [100, 200], [248, 340], [372, 444]]) wallH(a, 208, b - a);
+  // 문턱
+  g.fillStyle = '#c4915a';
+  for (const [a, b] of [[60, 86], [356, 384]]) g.fillRect(a, 124, b - a, 9);
+  for (const [a, b] of [[70, 100], [200, 248], [340, 372]]) g.fillRect(a, 208, b - a, 9);
+  for (const xx of [148, 294]) for (const [a, b] of [[84, 112], [160, 188]]) g.fillRect(xx, a, 6, b - a);
+  // 외곽 목재 프레임
+  R(g, 0, 42, 4, LH - 42, '#8a5a34'); R(g, LW - 4, 42, 4, LH - 42, '#8a5a34');
+  R(g, 0, LH - 8, LW, 8, '#8a5a34'); R(g, 0, LH - 8, LW, 1, '#b57a47'); R(g, 4, 42, 1, LH - 50, 'rgba(0,0,0,.2)');
+}
+function drawSign(g, rid) {
+  const Rm = ROOMS[rid], p = SIGNS[rid], x = p[0], y = p[1];
+  g.font = FONT_KO9; const tw = Math.ceil(g.measureText(Rm.ko).width);
+  g.font = FONT_EN7; const ew = Math.ceil(g.measureText(Rm.en.toUpperCase()).width);
+  const w = Math.max(tw, ew, 24) + 12, h = 20;
+  R(g, x + 4, y + h, 3, 5, '#6a3f1d'); R(g, x + w - 7, y + h, 3, 5, '#6a3f1d'); R(g, x + 3, y + h + 5, 5, 1, 'rgba(0,0,0,.3)'); R(g, x + w - 8, y + h + 5, 5, 1, 'rgba(0,0,0,.3)');
+  R(g, x, y, w, h, '#7a4a22'); R(g, x + 1, y + 1, w - 2, h - 2, '#c98c4a'); R(g, x + 1, y + 1, w - 2, 1, '#e0a463'); R(g, x + 1, y + h - 2, w - 2, 1, '#a8692f');
+  R(g, x + 4, y + 17, 7, 1, '#b87a3c'); R(g, x + w - 12, y + 3, 6, 1, '#b87a3c');
+  for (const [nx, ny] of [[2, 2], [w - 3, 2], [2, h - 3], [w - 3, h - 3]]) R(g, x + nx, y + ny, 1, 1, '#3a2410');
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = FONT_KO9; g.fillStyle = '#4a2b12'; g.fillText(Rm.ko, x + w / 2 + 1, y + 8); g.fillStyle = '#fff3d6'; g.fillText(Rm.ko, x + w / 2, y + 7);
+  g.font = FONT_EN7; g.fillStyle = '#ffe9a8'; g.fillText(Rm.en.toUpperCase(), x + w / 2, y + 15);
+}
+
+function drawScene(g) {
+  drawFloor(g);
+  drawRugs(g);
+  drawTopWall(g);
+  WINDOWS.forEach((w) => drawWindowFrame(g, w));
+  drawFrameArt(g, 196, 8, 14, 18, 1); drawFrameArt(g, 238, 8, 14, 18, 0);
+  [[304, 18, 28, '#f2c14e', 'star'], [325, 20, 24, '#e86a6a', 'mega'], [348, 20, 30, '#5aa9e6', 'bars'], [371, 18, 26, '#a98be8', 'heart'], [392, 20, 28, '#6cc070', 'sale']]
+    .forEach((p) => drawPoster(g, p[0], p[1], p[2], p[3], p[4]));
+  drawBookshelf(g, 10, 46, 26, 34); drawBookshelf(g, 38, 46, 26, 34); drawBookshelf(g, 66, 46, 26, 34);
+  drawWallsAndFrame(g);
+  drawPlant(g, 100, 54); drawPlant(g, 286, 60); drawPlant(g, 438, 116); drawPlant(g, 436, 206);
+  drawCooler(g, 159, 200); drawPlant(g, 286, 202);
+  drawWhiteboard(g, 98, 135);
+  drawCabinet(g, 360, 164); drawCabinet(g, 376, 164); drawSafe(g, 412, 164);
+  drawKanban(g, 108, 219);
+  drawPrinter(g, 176, 342); drawCan(g, 214, 342); drawPlant(g, 12, 342); drawPlant(g, 286, 342);
+  drawChecklist(g, 368, 220); drawPlant(g, 312, 342); drawPlant(g, 436, 342);
+  ROOM_IDS.forEach((rid) => drawSign(g, rid));
+}
+
+/* ============================== 6. FURNITURE (dynamic) ============================== */
+function monitorFrame(g, x, y, w) {                 // 모니터 몸체 (화면 안쪽은 따로 그림). 높이 12
+  w = w || 11;
+  R(g, x, y, w, 9, '#3a4052'); R(g, x, y, w, 1, '#566079'); R(g, x + 1, y + 1, w - 2, 7, '#10151f');
+  R(g, x + (w >> 1) - 1, y + 9, 3, 2, '#2c3140'); R(g, x + (w >> 1) - 3, y + 11, 7, 1, '#2c3140');
+}
+function deskBody(g, ox, oy, big) {                 // (ox,oy) = 좌석(캐릭터 발) 위치
+  const w = big ? 60 : 28, x0 = big ? ox - 30 : ox - 9;
+  R(g, x0 + 1, oy + 5, w, 3, 'rgba(0,0,0,.2)');
+  R(g, x0, oy - 7, w, 6, '#d9a362'); R(g, x0, oy - 7, w, 1, '#ecc088');
+  R(g, x0, oy - 1, w, 6, '#a8693a'); R(g, x0, oy - 1, w, 1, '#86532e'); R(g, x0, oy + 4, w, 1, '#7b4a29');
+  if (big) {
+    R(g, x0 + 2, oy + 1, w - 4, 2, '#b97a48'); R(g, ox - 8, oy, 16, 3, '#d9b04a'); R(g, ox - 8, oy, 16, 1, '#fbe596');
+    monitorFrame(g, ox - 29, oy - 18, 13); monitorFrame(g, ox + 16, oy - 18, 13);
+    R(g, ox + 10, oy - 6, 3, 4, '#e86a6a'); R(g, ox + 10, oy - 6, 3, 1, '#ffb0b0');
+  } else {
+    R(g, x0 + 2, oy + 1, 11, 3, '#b97a48'); R(g, x0 + 6, oy + 2, 3, 1, '#e8c97a');
+    monitorFrame(g, ox + 7, oy - 16);
+  }
+  R(g, ox - 4, oy - 4, 8, 2, '#cfd3dc'); R(g, ox - 4, oy - 4, 8, 1, '#eceff5'); R(g, ox + 5, oy - 4, 2, 2, '#cfd3dc');
+  R(g, ox - 4, oy + 5, 8, 1, '#2f3441'); R(g, ox - 5, oy + 7, 2, 1, '#2f3441'); R(g, ox + 3, oy + 7, 2, 1, '#2f3441');
+}
+function drawChairBack(g, x, y) {
+  R(g, x - 7, y - 13, 14, 11, '#3d4455'); R(g, x - 7, y - 13, 14, 1, '#566079'); R(g, x - 7, y - 4, 14, 2, '#2f3441');
+}
+function drawScreen(g, x, y, w, h, mode, t, seed) {
+  if (mode === 'work') {
+    R(g, x, y, w, h, '#0e2238');
+    const step = Math.floor(t * 5 + seed), cols = ['#6cc070', '#5fd3e6', '#f2c14e', '#f08cb0', '#a98be8'];
+    for (let r = 0; r < h - 1; r += 2) {
+      const k = ihash(step + r * 3, seed, r), ind = (k >> 6) & 1, len = Math.min(2 + (k % Math.max(1, w - 3)), w - 2 - ind);
+      R(g, x + 1 + ind, y + 1 + r, len, 1, cols[(k >> 8) % cols.length]);
+    }
+    if ((step & 7) === 0) R(g, x, y, w, 1, 'rgba(255,255,255,.4)');
+  } else if (mode === 'idle') {
+    R(g, x, y, w, h, '#2b5d83'); R(g, x + (w >> 1) - 1, y + (h >> 1) - 1, 3, 2, '#6fb4e0');
+    R(g, x + Math.floor(((Math.sin(t * 0.9 + seed) + 1) / 2) * (w - 1)), y + h - 2, 1, 1, '#bfe4f7');
+  } else if (mode === 'block') {
+    R(g, x, y, w, h, (Math.floor(t * 3) & 1) ? '#a62b2b' : '#5e1a1a');
+    R(g, x + (w >> 1), y + 1, 1, h - 3, '#ffffff'); R(g, x + (w >> 1), y + h - 2, 1, 1, '#ffffff');
+  } else if (mode === 'done') {
+    R(g, x, y, w, h, '#1f6b3a');
+    const cx = x + (w >> 1), cy = y + (h >> 1) - 1;
+    g.fillStyle = '#ffffff';
+    [[-2, 0], [-1, 1], [0, 2], [1, 1], [2, 0], [3, -1]].forEach((d) => g.fillRect(cx + d[0], cy + d[1], 1, 1));
+  } else {
+    R(g, x, y, w, h, '#161b27'); R(g, x, y, w, 1, '#232a3a'); R(g, x + 1, y + h - 2, 2, 1, '#2d3550');
+  }
+}
+function screenMode(ac) {
+  if (!ac || !ac.atDesk) return 'off';
+  return { working: 'work', idle: 'idle', blocked: 'block', done: 'done' }[ac.state] || 'off';
+}
+function drawDeskUnit(g, s, D, ac, t) {
+  const big = !!D.big, mode = screenMode(ac), seed = hash32(s.room + s.idx) & 255;
+  if (big) {
+    blit(g, bake('desk1', 64, 28, (b) => deskBody(b, 32, 18, true)), s.x - 32, s.y - 18, 64, 28);
+    drawScreen(g, s.x - 28, s.y - 17, 11, 7, mode, t, seed); drawScreen(g, s.x + 17, s.y - 17, 11, 7, mode, t, seed + 3);
+  } else {
+    blit(g, bake('desk0', 34, 28, (b) => deskBody(b, 12, 18, false)), s.x - 12, s.y - 18, 34, 28);
+    drawScreen(g, s.x + 8, s.y - 15, 9, 7, mode, t, seed);
+  }
+  if (ac && ac.atDesk && (ac.state === 'working' || ac.state === 'idle' || ac.state === 'blocked')) {
+    const typing = ac.state === 'working', f = typing ? (Math.floor(t * 9 + ac.pal.phase) & 1) : 0;
+    R(g, s.x - 5, s.y - 7, 2, 3, ac.pal.shirtD); R(g, s.x - 5, s.y - 4 + f, 2, 2, ac.pal.skin);
+    R(g, s.x + 3, s.y - 7, 2, 3, ac.pal.shirtD); R(g, s.x + 3, s.y - 4 + (1 - f), 2, 2, ac.pal.skin);
+  }
+}
+function drawTableUnit(g, rid, t) {
+  const T = TABLES[rid], ox = T.rx + 4, oy = T.ry + 4, w = T.rx * 2 + 8, h = T.ry * 2 + 14;
+  const c = bake('tbl_' + rid, w, h, (b) => {
+    ell(b, ox + 2, oy + T.ry + 3, T.rx, Math.max(2, T.ry >> 1), 'rgba(0,0,0,.18)');
+    R(b, ox - 2, oy + T.ry - 1, 4, 6, shade(T.rim, 0.3));
+    ell(b, ox, oy + 3, T.rx, T.ry, T.rim);
+    ell(b, ox, oy, T.rx, T.ry, T.top);
+    ell(b, ox - 1, oy - 1, Math.max(1, T.rx - 4), Math.max(1, T.ry - 2), tint(T.top, 0.2));
+    if (!T.main) { R(b, ox - 3, oy - 2, 5, 3, '#fffaf0'); R(b, ox - 2, oy - 1, 3, 1, '#9aa7bd'); R(b, ox + 3, oy - 1, 2, 2, '#d9534f'); }
+  });
+  blit(g, c, T.cx - ox, T.cy - oy, w, h);
+  if (T.main) {                                       // 검수실: 좌석마다 모니터
+    for (let k = 0; k < 6; k++) {
+      const sp = tableSeatPos(T, k, true), mx = Math.round(sp.x + (T.cx - sp.x) * 0.38), my = Math.round(sp.y + (T.cy - sp.y) * 0.5);
+      const ac = world.occ.get(rid + ':' + k) || null;
+      monitorFrame(g, mx - 5, my - 12, 11);
+      R(g, mx - 4, my, 8, 2, '#cfd3dc');
+      if (ac && ac.sat && ac.state === 'working') { const f = Math.floor(t * 9 + ac.pal.phase) & 1; R(g, mx - 4, my - 1 + f, 2, 2, ac.pal.skin); R(g, mx + 2, my - 1 + (1 - f), 2, 2, ac.pal.skin); }
+      drawScreen(g, mx - 4, my - 11, 9, 7, ac && ac.sat ? ({ working: 'work', idle: 'idle', blocked: 'block', done: 'done' }[ac.state] || 'off') : 'off', t, k * 7);
+    }
+  }
+}
+function brackets(g, x, y, w, h, c) {
+  g.fillStyle = c;
+  [[x, y, 1, 1], [x + w - 1, y, -1, 1], [x, y + h - 1, 1, -1], [x + w - 1, y + h - 1, -1, -1]].forEach((p) => {
+    g.fillRect(p[2] > 0 ? p[0] : p[0] - 2, p[1], 3, 1); g.fillRect(p[0], p[3] > 0 ? p[1] : p[1] - 2, 1, 3);
+  });
+}
+
+/* ============================== 7. SPRITES ============================== */
+/* 머리카락: [dx, dy, w, h] (캐릭터 몸통 기준선 by 에 대한 상대 좌표) */
+const HAIR = [
+  [[-4, -25, 8, 1], [-6, -24, 12, 3], [-6, -21, 3, 2], [3, -21, 3, 2], [-3, -21, 6, 1]],                                   // 0 short
+  [[-4, -25, 8, 1], [-6, -24, 12, 3], [-6, -21, 2, 9], [4, -21, 2, 9], [-4, -21, 8, 1]],                                    // 1 long
+  [[-4, -25, 8, 1], [-6, -24, 12, 3], [-6, -21, 2, 3], [4, -21, 2, 3], [-3, -21, 6, 1], [-5, -27, 2, 2], [-1, -28, 2, 3], [3, -27, 2, 2]], // 2 spiky
+  [[-4, -25, 8, 1], [-6, -24, 12, 3], [-6, -21, 2, 4], [4, -21, 2, 4], [-3, -21, 6, 1], [-2, -28, 4, 3]],                   // 3 bun
+  [[-5, -26, 10, 1], [-7, -25, 14, 5], [-7, -20, 3, 6], [4, -20, 3, 6], [-4, -20, 8, 1]],                                  // 4 bob
+  [[-4, -25, 8, 1], [-6, -24, 12, 3], [-6, -21, 9, 1], [3, -21, 3, 3], [-6, -20, 2, 2]],                                   // 5 swoop
+];
+function drawSprite(g, x, y, pal, p) {
+  const T = p.red > 0 ? (c) => mixHex(c, '#ff3b3b', p.red) : (c) => c;
+  const skin = T(pal.skin), hair = T(pal.hair), hairL = T(pal.hairL), shirt = T(pal.shirt), sleeve = T(pal.shirtD), pants = T(pal.pants), shoe = T('#2b2233');
+  const ink = '#2b2233';
+  x += p.shakeX || 0;
+  const by = y + (p.sit ? 4 : 0) + (p.bob || 0);
+  const legTop = p.sit ? by - 6 : y - 6;
+  if (!p.sit) {                                            // 그림자 + 다리
+    R(g, x - 6, y - 1, 12, 2, 'rgba(0,0,0,.25)'); R(g, x - 4, y - 2, 8, 1, 'rgba(0,0,0,.18)');
+    const la = p.walk && p.step ? -1 : 0, ra = p.walk && !p.step ? -1 : 0;
+    R(g, x - 3, y - 6, 3, 4, pants); R(g, x, y - 6, 3, 4, pants);
+    R(g, x - 4, y - 2 + la, 4, 2, shoe); R(g, x, y - 2 + ra, 4, 2, shoe);
+  } else {
+    R(g, x - 4, legTop, 8, 2, pants); R(g, x - 5, legTop + 2, 4, 2, shoe); R(g, x + 1, legTop + 2, 4, 2, shoe);
+  }
+  // 몸통
+  const th = legTop - (by - 14);
+  R(g, x - 4, by - 14, 8, th, shirt);
+  if (pal.acc === 'tie') { R(g, x - 2, by - 14, 4, 4, '#f4efe4'); R(g, x - 1, by - 14, 2, 1, '#c0392b'); R(g, x - 1, by - 13, 2, 5, '#c0392b'); R(g, x - 4, by - 14, 1, th, sleeve); R(g, x + 3, by - 14, 1, th, sleeve); }
+  else { R(g, x - 2, by - 14, 4, 1, skin); R(g, x - 3, by - 14, 1, 1, '#ffffff'); R(g, x + 2, by - 14, 1, 1, '#ffffff'); R(g, x + 1, by - 11, 3, 3, pal.roleColor); R(g, x + 1, by - 11, 3, 1, '#ffffff'); R(g, x + 2, by - 13, 1, 2, '#e6e6ee'); }
+  // 팔
+  const arms = p.arms || 'down', up = p.up ? 1 : 0;
+  const armDown = (ax) => { R(g, ax, by - 13, 2, 5, sleeve); R(g, ax, by - 8, 2, 2, skin); };
+  const armUp = (sd, f) => {                              // 팔을 번쩍 든 모습 (머리 바깥쪽)
+    const ax = sd < 0 ? x - 8 : x + 6;
+    R(g, ax, by - 18, 2, 6, sleeve); R(g, sd < 0 ? x - 7 : x + 4, by - 13, 3, 2, sleeve); R(g, ax, by - 20 + f, 2, 2, skin);
+  };
+  if (arms === 'up') { armUp(-1, up); armUp(1, 1 - up); }
+  else if (arms === 'wave') { armDown(x - 6); armUp(1, up); }
+  else { armDown(x - 6); armDown(x + 4); }
+  // 머리
+  R(g, x - 5, by - 23, 10, 9, skin); R(g, x - 6, by - 21, 12, 5, skin); R(g, x - 5, by - 15, 10, 1, T(pal.skinD));
+  g.fillStyle = hair;
+  for (const r of HAIR[pal.hairStyle % HAIR.length]) g.fillRect(x + r[0], by + r[1], r[2], r[3]);
+  R(g, x - 4, by - 23, 2, 1, hairL);
+  // 얼굴
+  const dx = p.eyeDx || 0;
+  const gl = pal.acc === 'glasses';
+  if (gl) {                                             // 안경: 둥근 렌즈 + 작은 눈동자
+    const fr = '#4a4f66';
+    for (const lx of [x - 5, x]) {
+      R(g, lx + 1, by - 20, 2, 3, '#e3f4ff'); R(g, lx + 1, by - 21, 2, 1, fr); R(g, lx + 1, by - 17, 2, 1, fr); R(g, lx, by - 20, 1, 3, fr); R(g, lx + 3, by - 20, 1, 3, fr);
+      if (p.blink) R(g, lx + 1, by - 18, 2, 1, ink); else R(g, lx + 1 + (p.eyeDx > 0 ? 1 : 0), by - 19, 1, 2, ink);
+    }
+    R(g, x - 1, by - 20, 1, 1, fr);
+  } else if (p.blink) { R(g, x - 4 + dx, by - 18, 2, 1, ink); R(g, x + 1 + dx, by - 18, 2, 1, ink); }
+  else { R(g, x - 4 + dx, by - 20, 2, 3, ink); R(g, x + 1 + dx, by - 20, 2, 3, ink); R(g, x - 4 + dx, by - 20, 1, 1, '#ffffff'); R(g, x + 1 + dx, by - 20, 1, 1, '#ffffff'); }
+  if (pal.blush) { R(g, x - 5, by - 17, 2, 1, mixHex(skin, '#ff6f7f', 0.45)); R(g, x + 3, by - 17, 2, 1, mixHex(skin, '#ff6f7f', 0.45)); }
+  const mouth = mixHex(skin, '#7a2b2b', 0.55);
+  if (p.mouth === 1) R(g, x - 1, by - 16, 2, 2, '#7a2b2b');
+  else if (p.mouth === 2) { R(g, x - 2, by - 17, 1, 1, mouth); R(g, x - 1, by - 16, 2, 1, mouth); R(g, x + 1, by - 17, 1, 1, mouth); }
+  else R(g, x - 1, by - 16, 2, 1, mouth);
+  if (p.sweat) { R(g, x + 6, by - 22, 1, 2, '#7fd0ff'); R(g, x + 6, by - 20, 1, 1, '#bfe9ff'); }
+  // 액세서리
+  if (pal.acc === 'beret') { R(g, x - 5, by - 27, 9, 3, T(pal.shirt)); R(g, x - 5, by - 27, 9, 1, tint(T(pal.shirt), 0.3)); R(g, x - 1, by - 28, 2, 1, T(pal.shirt)); }
+  else if (pal.acc === 'headphones') { R(g, x - 6, by - 26, 12, 1, '#3a3f4f'); R(g, x - 7, by - 22, 2, 5, '#3a3f4f'); R(g, x + 5, by - 22, 2, 5, '#3a3f4f'); R(g, x - 7, by - 22, 1, 5, '#566079'); R(g, x + 5, by - 22, 1, 5, '#566079'); }
+}
+function sparkles(g, ac, t) {
+  const cx = Math.round(ac.x), top = Math.round(ac.y) - 30 + (ac.sat ? 4 : 0);
+  for (let i = 0; i < 3; i++) {
+    const ph = t * 2.2 + i * 2.1 + ac.pal.phase, life = ph % 3;
+    if (life > 2) continue;
+    const sx = cx + Math.round(Math.cos(ph * 1.3 + i) * 11), sy = top + 8 + Math.round(Math.sin(ph * 0.9 + i * 2) * 5) - Math.round(life * 2);
+    R(g, sx, sy, 1, 1, '#fff7c2');
+    if (Math.sin(Math.PI * (life / 2)) > 0.55) { R(g, sx - 1, sy, 1, 1, '#ffd84a'); R(g, sx + 1, sy, 1, 1, '#ffd84a'); R(g, sx, sy - 1, 1, 1, '#ffd84a'); R(g, sx, sy + 1, 1, 1, '#ffd84a'); }
+  }
+}
+function bubbleOf(ac) {
+  if (ac.state === 'blocked') return { text: '⚠', kind: 'bad' };
+  if (ac.state === 'done') return { text: '✓', kind: 'ok' };
+  let tx = firstGraphemes(str(ac.bubble).trim(), 6);        // 계약: 이모지 1개 또는 6자 이하 (이모지는 글자 단위로 자름)
+  if (!tx) tx = ac.state === 'working' ? '💻' : ac.state === 'meeting' ? '💬' : '💤';
+  return { text: tx, kind: ac.state === 'meeting' ? 'meet' : 'norm' };
+}
+const BUBBLE_COLORS = {
+  norm: ['#fffaf0', '#2b2233', '#2b2233'], meet: ['#e4f2ff', '#2b4a6e', '#1f3550'], ok: ['#e2f7d8', '#2f7d32', '#1f6b3a'], bad: ['#ffdcd6', '#c0392b', '#c0392b'],
+};
+function drawBubble(g, cx, topY, b, t, ph) {
+  g.font = FONT_KO9; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const w = Math.max(14, Math.ceil(g.measureText(b.text).width) + 6), h = 12, C = BUBBLE_COLORS[b.kind] || BUBBLE_COLORS.norm;
+  const bx = clamp(cx - (w >> 1), 3, LW - w - 3), by = topY - h - 3 + Math.round(Math.sin(t * 2.2 + ph));
+  R(g, bx + 1, by, w - 2, h, C[1]); R(g, bx, by + 1, w, h - 2, C[1]);
+  R(g, bx + 2, by + 1, w - 4, h - 2, C[0]); R(g, bx + 1, by + 2, w - 2, h - 4, C[0]);
+  const tx = clamp(cx, bx + 4, bx + w - 5);
+  R(g, tx - 1, by + h - 1, 3, 1, C[0]);
+  R(g, tx - 2, by + h, 1, 1, C[1]); R(g, tx + 2, by + h, 1, 1, C[1]); R(g, tx - 1, by + h, 3, 1, C[0]);
+  R(g, tx - 1, by + h + 1, 1, 1, C[1]); R(g, tx + 1, by + h + 1, 1, 1, C[1]); R(g, tx, by + h + 1, 1, 1, C[0]); R(g, tx, by + h + 2, 1, 1, C[1]);
+  g.fillStyle = C[2]; g.fillText(b.text, bx + w / 2, by + h / 2 + 1);
+}
+
+/* ============================== 8. ACTORS & RENDER ============================== */
+const world = { actors: new Map(), seatPrev: null, occ: new Map(), maxIdx: {}, hover: null, pinned: null, showNames: false };
+let canvas = null, ctx = null, bg = null, bgDirty = true;
+const REDUCED = typeof matchMedia !== 'undefined' && !!matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function makeActor(a, seat) {
+  const rk = roleKeyOf(a);
+  return {
+    id: a.id, roleKey: rk, role: a.role, room: seat.room, seatIdx: seat.idx, seat, state: 'idle', task: '', bubble: '', product_id: '', updated_at: '',
+    pal: paletteFor(a.id, rk), x: seat.x, y: seat.y, moving: false, sat: false, atDesk: false, atTable: false, face: 0, meetIdx: -1,
+  };
+}
+function syncActors(agents) {
+  const alloc = allocateSeats(agents, world.seatPrev);
+  world.seatPrev = alloc;
+  const seen = new Set(), maxIdx = {};
+  world.occ = new Map();
+  for (const a of agents) {
+    const al = alloc.get(a.id), seat = seatFor(al.room, al.idx);
+    let ac = world.actors.get(a.id);
+    if (!ac) { ac = makeActor(a, seat); world.actors.set(a.id, ac); }
+    ac.room = al.room; ac.seatIdx = al.idx; ac.seat = seat; ac.role = a.role;
+    ac.state = normState(a.state); ac.task = str(a.task); ac.bubble = str(a.bubble); ac.product_id = str(a.product_id); ac.updated_at = str(a.updated_at);
+    seen.add(a.id);
+    maxIdx[al.room] = Math.max(maxIdx[al.room] == null ? -1 : maxIdx[al.room], al.idx);
+    world.occ.set(al.room + ':' + al.idx, ac);
+  }
+  for (const id of Array.from(world.actors.keys())) if (!seen.has(id)) { world.actors.delete(id); if (world.hover === id) world.hover = null; if (world.pinned === id) world.pinned = null; }
+  world.maxIdx = maxIdx;
+  const byRoom = {};
+  world.actors.forEach((ac) => { ac.meetIdx = -1; if (ac.state === 'meeting') (byRoom[ac.room] = byRoom[ac.room] || []).push(ac); });
+  Object.keys(byRoom).forEach((r) => byRoom[r].sort((p, q) => p.seatIdx - q.seatIdx).forEach((ac, i) => { ac.meetIdx = i; }));
+}
+function targetOf(ac) {
+  if (ac.state === 'meeting' && ac.meetIdx >= 0 && ac.room !== 'testing' && TABLES[ac.room]) return meetSeat(ac.room, ac.meetIdx);
+  return ac.seat;
+}
+function updateActor(ac, dt) {
+  const tg = targetOf(ac), dx = tg.x - ac.x, dy = tg.y - ac.y, d = Math.hypot(dx, dy);
+  if (d > 0.6) {
+    const step = Math.min(d, 52 * dt);
+    ac.x += (dx / d) * step; ac.y += (dy / d) * step;
+    ac.moving = true; ac.sat = false; ac.atDesk = false; ac.atTable = false; ac.face = dx > 0.5 ? 1 : dx < -0.5 ? -1 : 0;
+  } else {
+    ac.x = tg.x; ac.y = tg.y; ac.moving = false; ac.face = 0; ac.sat = !!tg.sit; ac.atDesk = tg.kind === 'desk'; ac.atTable = !!tg.sit && (tg.kind === 'meet' || tg.kind === 'table');
+  }
+}
+function drawActor(g, ac, t) {
+  const ph = ac.pal.phase, st = ac.state;
+  const p = { sit: ac.sat, walk: ac.moving, step: ac.moving ? (Math.floor(t * 6) & 1) : 0, blink: false, mouth: 0, arms: 'down', up: 0, eyeDx: ac.face, bob: 0, shakeX: 0, red: 0, sweat: false };
+  if (ac.moving) p.bob = p.step ? -1 : 0;
+  else if (st === 'idle') { p.bob = Math.sin(t * 1.7 + ph) > 0.6 ? -1 : 0; p.blink = ((t + ph) % 3.9) < 0.14; }
+  else if (st === 'working') { p.bob = Math.floor(t * 2.2 + ph) % 5 === 0 ? -1 : 0; p.blink = ((t + ph) % 4.4) < 0.12; }
+  else if (st === 'meeting') { p.mouth = Math.floor(t * 5 + ph) % 3 === 0 ? 1 : 0; p.arms = Math.sin(t * 1.3 + ph) > 0.7 ? 'wave' : 'down'; p.up = Math.floor(t * 6) & 1; p.blink = ((t + ph) % 4.1) < 0.12; }
+  else if (st === 'blocked') { p.shakeX = (Math.floor(t * 9) & 1) ? 1 : -1; p.red = (Math.floor(t * 2.5) & 1) ? 0.55 : 0; p.sweat = true; p.mouth = 1; }
+  else if (st === 'done') { p.arms = 'up'; p.up = Math.floor(t * 4) & 1; p.bob = (Math.floor(t * 4) & 1) ? -1 : 0; p.mouth = 2; }
+  if (REDUCED) { p.bob = 0; p.shakeX = 0; p.step = 0; }
+  drawSprite(g, Math.round(ac.x), Math.round(ac.y), ac.pal, p);
+  if (st === 'done' && !ac.moving && !REDUCED) sparkles(g, ac, t);
+}
+function hitTest(lx, ly) {
+  let best = null;
+  world.actors.forEach((ac) => {
+    const sit = ac.sat ? 4 : 0;
+    if (lx >= ac.x - 8 && lx <= ac.x + 8 && ly >= ac.y - 29 + sit && ly <= ac.y + (ac.sat ? 8 : 2) && (!best || ac.y > best.y)) best = ac;
+  });
+  return best;
+}
+
+function skyFor(hr) {
+  if (hr >= 7 && hr < 17) return ['#7fcdf2', '#bfe9fb', 0];
+  if ((hr >= 5 && hr < 7) || (hr >= 17 && hr < 20)) return ['#f08a5b', '#fbd18b', 0];
+  return ['#18214a', '#2b3a6b', 1];
+}
+function drawWindows(g, t) {
+  const d = new Date(), sky = skyFor(d.getHours() + d.getMinutes() / 60);
+  for (const w of WINDOWS) {
+    const hh = w.h >> 1;
+    R(g, w.x, w.y, w.w, hh, sky[0]); R(g, w.x, w.y + hh, w.w, w.h - hh, sky[1]);
+    if (sky[2]) {
+      for (let i = 0; i < 5; i++) { const k = ihash(w.x, i, 3); if (((Math.floor(t * 1.5) + i) & 3) !== 0) R(g, w.x + 3 + (k % (w.w - 6)), w.y + 1 + ((k >> 8) % (w.h - 6)), 1, 1, '#fff6c8'); }
+      R(g, w.x + w.w - 8, w.y + 3, 3, 3, '#fff6c8');
+    } else {
+      R(g, w.x + w.w - 8, w.y + 2, 4, 4, '#fff3a0');
+      const cx = w.x + 3 + ((Math.floor(t * 1.5) + w.x) % Math.max(1, w.w - 12));
+      R(g, cx, w.y + 9, 6, 2, 'rgba(255,255,255,.9)'); R(g, cx + 1, w.y + 8, 3, 1, 'rgba(255,255,255,.9)');
+    }
+    R(g, w.x + (w.w >> 1), w.y, 1, w.h, '#f6f1e3'); R(g, w.x, w.y + hh, w.w, 1, '#f6f1e3');
+    R(g, w.x, w.y, 3, w.h, '#e08a8a'); R(g, w.x + 1, w.y, 1, w.h, '#c96d6d'); R(g, w.x + w.w - 3, w.y, 3, w.h, '#e08a8a'); R(g, w.x + w.w - 2, w.y, 1, w.h, '#c96d6d');
+  }
+}
+function drawClock(g) {
+  const cx = 224, cy = 17, now = new Date();
+  ell(g, cx, cy, 9, 9, '#8a5a34'); ell(g, cx, cy, 8, 8, '#2b2233'); ell(g, cx, cy, 7, 7, '#fffaf0');
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; R(g, Math.round(cx + Math.sin(a) * 6), Math.round(cy - Math.cos(a) * 6), 1, 1, i % 3 === 0 ? '#2b2233' : '#a89f8a'); }
+  const m = now.getMinutes() + now.getSeconds() / 60, hr = (now.getHours() % 12) + m / 60, s = now.getSeconds();
+  const hand = (ang, len, c) => line(g, cx, cy, Math.round(cx + Math.sin(ang) * len), Math.round(cy - Math.cos(ang) * len), c);
+  hand((hr / 12) * Math.PI * 2, 3.5, '#2b2233'); hand((m / 60) * Math.PI * 2, 5.5, '#2b2233'); hand((s / 60) * Math.PI * 2, 6, '#d9534f');
+  R(g, cx, cy, 1, 1, '#2b2233');
+}
+function buildDrawables(t) {
+  const list = [];
+  for (const rid of ROOM_IDS) {
+    const D = DESKS[rid];
+    if (D) {
+      const mx = world.maxIdx[rid], n = Math.min(deskCap(rid), Math.max(D.show, mx == null ? 0 : mx + 1));
+      for (let i = 0; i < n; i++) {
+        const s = seatFor(rid, i), ac = world.occ.get(rid + ':' + i) || null;
+        list.push({ y: s.y - 0.4, fn: (g) => drawChairBack(g, s.x, s.y) });
+        list.push({ y: s.y + 0.4, fn: (g) => drawDeskUnit(g, s, D, ac, t) });
+      }
+    }
+    const T = TABLES[rid];
+    list.push({ y: T.cy + T.ry + 1, fn: (g) => drawTableUnit(g, rid, t) });
+    if (T.main) for (let k = 0; k < 6; k++) { const sp = tableSeatPos(T, k, true); list.push({ y: sp.y - 0.4, fn: (g) => drawChairBack(g, sp.x, sp.y) }); }
+  }
+  world.actors.forEach((ac) => {
+    if (ac.atTable && ac.room !== 'testing') list.push({ y: ac.y - 0.4, fn: (g) => drawChairBack(g, Math.round(ac.x), Math.round(ac.y)) });   // 회의 의자
+    list.push({ y: ac.y, fn: (g) => drawActor(g, ac, t) });
+  });
+  return list;
+}
+function abbrId(id) { const m = /^([a-z]+)(.*)$/i.exec(str(id)); return clip(m ? (own(ID_ABBR, m[1].toLowerCase()) || m[1]) + m[2] : str(id), 12); }
+function drawOverlays(g, t) {
+  const acs = Array.from(world.actors.values()).sort((a, b) => a.y - b.y);
+  for (const ac of acs) {
+    const x = Math.round(ac.x), y = Math.round(ac.y), sit = ac.sat ? 4 : 0, hot = world.hover === ac.id || world.pinned === ac.id;
+    if (hot) brackets(g, x - 9, y - 31 + sit, 18, 33 + (ac.sat ? 6 : 0), '#ffffff');
+    if (world.showNames || hot) {
+      g.font = FONT_EN7; g.textAlign = 'center'; g.textBaseline = 'middle';
+      textOutlined(g, abbrId(ac.id), x, y + (ac.sat ? 9 : 5), '#ffffff', '#2b2233');
+    }
+  }
+  for (const ac of acs) {
+    const b = bubbleOf(ac);
+    drawBubble(g, Math.round(ac.x), Math.round(ac.y) - 29 + (ac.sat ? 4 : 0), b, t, ac.pal.phase);
+  }
+}
+function rebuildBg() {
+  bg = makeCanvas(LW * S, LH * S);
+  const g = bg.getContext('2d');
+  g.imageSmoothingEnabled = false; g.setTransform(S, 0, 0, S, 0, 0);
+  drawScene(g);
+  bgDirty = false;
+}
+function render(t) {
+  if (!ctx) return;
+  if (!bg || bgDirty) rebuildBg();
+  const g = ctx;
+  g.setTransform(S, 0, 0, S, 0, 0); g.imageSmoothingEnabled = false;
+  g.drawImage(bg, 0, 0, LW, LH);
+  drawWindows(g, t); drawClock(g);
+  const list = buildDrawables(t);
+  list.sort((a, b) => a.y - b.y);
+  for (const d of list) d.fn(g);
+  drawOverlays(g, t);
+}
+
+/* ============================== 9. DATA ============================== */
+function arr(v) { return Array.isArray(v) ? v : []; }
+function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+/* 서버 응답(또는 데모)을 안전한 형태로 정규화. 어떤 입력이 와도 던지지 않는다. */
+function normalizeState(raw) {
+  const r = isObj(raw) ? raw : {};
+  const seen = new Set(), agents = [];
+  for (const a of arr(r.agents)) {
+    if (!isObj(a)) continue;
+    const id = str(a.id).trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    agents.push({ id, role: str(a.role).trim() || prefixOf(id), state: normState(a.state), task: str(a.task), bubble: str(a.bubble), product_id: str(a.product_id), updated_at: str(a.updated_at) });
+  }
+  const events = arr(r.events).filter(isObj).map((e) => ({
+    ts: str(e.ts), id: str(e.id), role: str(e.role).trim() || prefixOf(e.id), type: str(e.type).trim().toLowerCase() || 'note',
+    state: str(e.state).trim().toLowerCase(), msg: str(e.msg), product_id: str(e.product_id),
+  }));
+  const products = arr(r.products).filter(isObj).map((p) => ({
+    id: str(p.id), batch: str(p.batch), title: str(p.title), model: str(p.model), platform: str(p.platform),
+    price_krw: num(p.price_krw), status: str(p.status).trim().toLowerCase(), created_at: str(p.created_at), listed_url: str(p.listed_url), notes: str(p.notes),
+  }));
+  const k = isObj(r.kpis) ? r.kpis : {}, by = isObj(k.by_status) ? k.by_status : {}, byStatus = {};
+  Object.keys(by).forEach((s) => { byStatus[s] = Math.max(0, Math.round(num(by[s]))); });
+  const has = (v) => v !== undefined && v !== null && v !== '';
+  const kpis = {
+    products_total: has(k.products_total) ? Math.max(0, Math.round(num(k.products_total))) : products.length,
+    by_status: byStatus,
+    revenue_krw_total: num(k.revenue_krw_total), revenue_krw_this_month: num(k.revenue_krw_this_month), expenses_krw_total: num(k.expenses_krw_total),
+    net_krw_total: has(k.net_krw_total) ? num(k.net_krw_total) : num(k.revenue_krw_total) - num(k.expenses_krw_total),
+  };
+  const approvals = arr(r.approvals).filter(isObj).map((a) => ({
+    id: str(a.id), product_id: str(a.product_id), action: str(a.action).trim(), requested_at: str(a.requested_at), status: str(a.status).trim().toLowerCase() || 'pending', note: str(a.note),
+  }));
+  return { now: str(r.now), agents, events, kpis, approvals, products };
+}
+
+/* ---- DEMO 시뮬레이터: 같은 모양의 스냅샷을 만들어 낸다 ---- */
+const DEMO_ROSTER = ['ceo', 'researcher-1', 'researcher-2', 'pm-1', 'designer-1', 'designer-2', 'maker-1', 'maker-2', 'maker-3', 'maker-4', 'maker-5', 'maker-6', 'maker-7',
+  'qa-1', 'qa-2', 'qa-3', 'marketer-1', 'cfo-1'];
+const DEMO_TASKS = {
+  ceo: ['이번 배치 목표 결정 중', '상품 브리프 승인 검토', '최종 출고 판정 중', '주간 매출 점검'],
+  researcher: ['수요·경쟁 상품 조사 중', '가격대 근거 URL 수집', '키워드 검색량 분석', '경쟁 상품 후기 요약'],
+  pm: ['상품 사양서(spec) 작성 중', '타깃 고객 정의', '기능 범위·구성 정리'],
+  designer: ['템플릿 레이아웃 설계', '썸네일 브리프 작성', '브랜딩 컬러·폰트 정리'],
+  maker: ['노션 취업 준비 템플릿 제작 중', '엑셀 가계부 템플릿 제작', '프롬프트 팩 120선 작성', '체크리스트 PDF 편집', '업무 자동화 스크립트 제작', '크롤링 스타터 코드 정리'],
+  qa: ['적대적 검수: 수식 오류 점검', '템플릿 열람 테스트', '결함 보고서 작성', '실행 테스트 재현 중'],
+  marketer: ['판매 페이지 문구 작성', '키워드·태그 선정', '가격 근거 정리'],
+  cfo: ['장부 기록 정리', '표시광고법 점검', 'AI 표시 문구 검토', '수수료·세무 메모 작성'],
+};
+const DEMO_PRODUCTS = [
+  ['notion-job-hunt-kit', '노션 취업 준비 템플릿', 9900], ['excel-household-ledger', '엑셀 가계부 자동화 템플릿', 7900], ['prompt-pack-120', '업무용 프롬프트 120선', 12900],
+  ['crawler-starter', '파이썬 크롤링 스타터 키트', 19900], ['resume-pdf-set', '이력서·자소서 PDF 세트', 5900], ['habit-tracker', '습관 트래커 노션 템플릿', 6900],
+  ['freelance-invoice', '프리랜서 견적서·청구서 세트', 8900], ['study-planner', '자격증 스터디 플래너', 4900],
+];
+const DEMO_STATUSES = ['listed', 'awaiting_owner', 'qa_passed', 'in_production', 'in_production', 'qa_failed', 'draft', 'listed'];
+const DEMO_BUBBLES = { working: ['💻', '⌨️', '🔧', '📝', '💡'], idle: ['💤', '☕', '🙂', '…'], meeting: ['💬', '🗣️', '📋'] };
+const DEMO_NEXT = {
+  idle: [['working', 0.55], ['meeting', 0.15], ['idle', 0.3]],
+  working: [['working', 0.3], ['done', 0.35], ['meeting', 0.15], ['blocked', 0.1], ['idle', 0.1]],
+  meeting: [['working', 0.6], ['idle', 0.3], ['meeting', 0.1]],
+  blocked: [['working', 0.75], ['idle', 0.25]],
+  done: [['idle', 0.6], ['working', 0.4]],
+};
+function makeDemo(seed) {
+  const rnd = mulberry32(seed == null ? 20261015 : seed);
+  const pick = (a) => a[Math.floor(rnd() * a.length)];
+  const wpick = (tbl) => { let x = rnd(), acc = 0; for (const e of tbl) { acc += e[1]; if (x < acc) return e[0]; } return tbl[tbl.length - 1][0]; };
+  const agents = DEMO_ROSTER.map((id) => ({ id, role: prefixOf(id), state: 'idle', task: '대기 중', bubble: '💤', product_id: '', updated_at: '', until: 0 }));
+  const events = [], iso = (ms) => new Date(ms).toISOString();
+  let started = false, revenue = 1284000, month = 412000, expenses = 96000, nextSale = 0, t0 = 0;
+  const kpiStatus = { draft: 2, in_production: 3, qa_failed: 1, qa_passed: 1, awaiting_owner: 2, listed: 2, retired: 1 };
+
+  function push(now, a, type, msg, state) { events.push({ ts: iso(now), id: a.id, role: a.role, type, state: state || '', msg, product_id: a.product_id || '' }); if (events.length > 120) events.shift(); }
+  function enter(a, st, now, first) {
+    const role = a.role, prods = ['pm', 'designer', 'maker', 'qa', 'marketer', 'cfo'];
+    a.state = st; a.updated_at = iso(now);
+    if (st === 'working') {
+      a.task = pick(DEMO_TASKS[role] || ['작업 중']); a.bubble = pick(DEMO_BUBBLES.working);
+      a.product_id = prods.indexOf(role) >= 0 && rnd() < 0.7 ? pick(DEMO_PRODUCTS)[0] : '';
+      a.until = now + 5000 + rnd() * 9000;
+    } else if (st === 'meeting') {
+      a.task = pick(['배치 회의: 가격 정책 논의', '핸드오프 회의', '결함 리뷰 회의', '주간 스탠드업']); a.bubble = pick(DEMO_BUBBLES.meeting); a.until = now + 5000 + rnd() * 6000;
+    } else if (st === 'blocked') {
+      a.task = pick(['검수 결함 재작업 대기', '오너 승인 대기 중', '근거 URL 부족 — 추가 조사 필요', '표시 규정 확인 필요']); a.bubble = '⚠'; a.until = now + 5000 + rnd() * 3000;
+    } else if (st === 'done') {
+      a.task = (a.task || '작업').replace(/ 중$/, '') + ' 완료'; a.bubble = '✅'; a.until = now + 3500 + rnd() * 2500;
+    } else {
+      a.task = '다음 작업 대기 중'; a.bubble = pick(DEMO_BUBBLES.idle); a.product_id = ''; a.until = now + 4000 + rnd() * 8000;
+    }
+    if (first) return;
+    push(now, a, 'status', a.task, st);
+    const r = rnd();
+    if (st === 'blocked') push(now, a, r < 0.7 ? 'defect' : 'note', r < 0.7 ? '결함 발견: ' + a.task : '진행 불가 사유: ' + a.task);
+    else if (st === 'done' && role === 'maker' && r < 0.4) push(now, a, 'handoff', '산출물을 qa-' + (1 + Math.floor(rnd() * 3)) + ' 에게 전달');
+    else if (st === 'done' && role === 'ceo') push(now, a, 'decision', '브리프 승인: ' + pick(DEMO_PRODUCTS)[1]);
+    else if (st === 'done' && (role === 'cfo' || role === 'marketer') && r < 0.25) push(now, a, 'approval_request', '오너 승인 요청 등록: ' + pick(DEMO_PRODUCTS)[0]);
+    else if (st === 'meeting' && r < 0.3) push(now, a, 'note', '회의 메모: 가격·수수료 근거 공유');
+  }
+  return {
+    step(now) {
+      if (!started) {
+        started = true; t0 = now; nextSale = now + 15000;
+        agents.forEach((a) => { enter(a, wpick([['working', 0.42], ['idle', 0.2], ['meeting', 0.16], ['done', 0.14], ['blocked', 0.08]]), now, true); a.until = now + 1500 + rnd() * 9000; });
+        agents.slice(0, 6).forEach((a, i) => push(now - (6 - i) * 40000, a, 'status', a.task, a.state));
+        push(now - 5000, agents[0], 'decision', '이번 배치 목표: 판매용 디지털 상품 4개 제작');
+      }
+      agents.forEach((a) => { if (now >= a.until) enter(a, wpick(DEMO_NEXT[a.state] || DEMO_NEXT.idle), now, false); });
+      if (now >= nextSale) { const p = pick(DEMO_PRODUCTS); revenue += p[2]; month += p[2]; nextSale = now + 18000 + rnd() * 20000; push(now, agents[0], 'note', '판매 발생: ' + p[1] + ' (' + fmtKRW(p[2]) + ')'); }
+      return {
+        now: iso(now),
+        agents: agents.map((a) => ({ id: a.id, role: a.role, state: a.state, task: a.task, bubble: a.bubble, product_id: a.product_id, updated_at: a.updated_at })),
+        events: events.slice(-80),
+        kpis: { products_total: 12, by_status: kpiStatus, revenue_krw_total: revenue, revenue_krw_this_month: month, expenses_krw_total: expenses, net_krw_total: revenue - expenses },
+        approvals: [
+          { id: 'apr-0004', product_id: 'notion-job-hunt-kit', action: 'publish_listing', requested_at: iso(t0 - 2 * 3600e3), status: 'pending', decided_at: '', note: '크몽 등록 승인 요청' },
+          { id: 'apr-0005', product_id: 'prompt-pack-120', action: 'price_change', requested_at: iso(t0 - 50 * 60e3), status: 'pending', decided_at: '', note: '9,900원 → 12,900원' },
+          { id: 'apr-0006', product_id: 'crawler-starter', action: 'send_proposal', requested_at: iso(t0 - 9 * 60e3), status: 'pending', decided_at: '', note: '' },
+        ],
+        products: DEMO_PRODUCTS.map((p, i) => ({ id: p[0], batch: 'batch-00' + (1 + (i >> 2)), title: p[1], model: 'digital', platform: i % 2 ? '클래스101' : '크몽', price_krw: p[2],
+          status: DEMO_STATUSES[i % DEMO_STATUSES.length], created_at: iso(t0 - (DEMO_PRODUCTS.length - i) * 86400e3), listed_url: '', notes: '' })),
+      };
+    },
+  };
+}
+
+/* ============================== 10. UI PANEL ============================== */
+const model = { mode: 'boot', state: null, at: 0 };
+const ui = { el: {}, last: {}, feedSeen: null, tipPos: null };
+function setHTML(key, el, html) { if (el && ui.last[key] !== html) { el.innerHTML = html; ui.last[key] = html; } }
+const chip = (label, color, solid) => '<span class="chip' + (solid ? ' solid' : '') + '" style="--c:' + color + '">' + esc(label) + '</span>';
+
+function renderKpis(k, nowStr) {
+  const big = (txt) => (txt.length > 17 ? ' xs' : txt.length > 11 ? ' sm' : '');
+  const sign = (n) => (num(n) < 0 ? ' neg' : '');
+  const net = num(k.net_krw_total), listed = (k.by_status && k.by_status.listed) || 0;
+  const keys = PRODUCT_STATUS_ORDER.concat(Object.keys(k.by_status || {}).filter((s) => PRODUCT_STATUS_ORDER.indexOf(s) < 0));
+  let seg = '', chips = '';
+  keys.forEach((s) => {
+    const n = (k.by_status && k.by_status[s]) || 0;
+    if (!n) return;
+    const m = own(PRODUCT_STATUS, s) || { ko: clip(s, 14), color: '#9aa7bd' };
+    seg += '<i style="flex:' + n + ';--c:' + m.color + '" title="' + esc(m.ko) + ' ' + n + '"></i>';
+    chips += chip(m.ko + ' ' + n, m.color);
+  });
+  const d = Date.parse(nowStr), month = (isFinite(d) ? new Date(d) : new Date()).getMonth() + 1;
+  setHTML('kpis', ui.el.kpis,
+    '<div class="kpi" style="--c:#f2c14e"><div class="l">총 매출</div><div class="v' + sign(k.revenue_krw_total) + big(fmtKRW(k.revenue_krw_total)) + '">' + esc(fmtKRW(k.revenue_krw_total)) + '</div><div class="s">누적</div></div>' +
+    '<div class="kpi" style="--c:#4ec3b5"><div class="l">이번 달 매출</div><div class="v' + sign(k.revenue_krw_this_month) + big(fmtKRW(k.revenue_krw_this_month)) + '">' + esc(fmtKRW(k.revenue_krw_this_month)) + '</div><div class="s">' + month + '월</div></div>' +
+    '<div class="kpi" style="--c:' + (net < 0 ? '#e86a6a' : '#6cc070') + '"><div class="l">순이익</div><div class="v ' + (net < 0 ? 'neg' : 'pos') + big(fmtKRW(net)) + '">' + esc(fmtKRW(net)) + '</div><div class="s">지출 ' + esc(fmtKRW(k.expenses_krw_total)) + '</div></div>' +
+    '<div class="kpi" style="--c:#5aa9e6"><div class="l">상품 수</div><div class="v">' + esc(fmtNum(k.products_total)) + '<small>개</small></div><div class="s">판매 중 ' + listed + '</div></div>' +
+    '<div class="kpi wide" style="--c:#5aa9e6"><div class="l">상품 상태별</div>' + (seg ? '<div class="seg">' + seg + '</div><div class="chips">' + chips + '</div>' : '<div class="none">아직 등록된 상품이 없습니다.</div>') + '</div>');
+}
+function renderApprovals(list) {
+  const pend = list.filter((a) => a.status === 'pending');
+  ui.el.apCount.textContent = pend.length ? pend.length + '건' : '';
+  const rows = pend.map((a) =>
+    '<div class="ap"><div class="r1"><b>' + esc(clip(a.product_id || '-', 40)) + '</b>' + chip(own(APPROVAL_ACTIONS, a.action) || clip(a.action, 24) || '요청', '#f2c14e') +
+    '<span style="margin-left:auto;color:var(--dim);font-size:11px">' + esc(relTime(a.requested_at)) + '</span></div>' +
+    '<div class="r2">' + esc(clip(a.id, 40)) + (a.note ? ' · ' + esc(clip(a.note, 160)) : '') + '</div></div>').join('');
+  setHTML('approvals', ui.el.approvals,
+    (rows || '<div class="none">대기 중인 승인 요청이 없습니다.</div>') +
+    '<p class="note">읽기 전용 목록입니다. 승인은 <b>오너(대표님)만</b> 할 수 있어요.<br>터미널에서 <code>python scripts/tracker.py approve &lt;id&gt; --i-am-owner</code></p>');
+}
+function renderFeed(events) {
+  const list = events.slice(-60).reverse(), first = ui.feedSeen == null, seen = ui.feedSeen || new Set(), keys = new Set();
+  ui.el.feedCount.textContent = events.length ? '최근 ' + list.length + '개' : '';
+  const html = list.map((e) => {
+    const key = e.ts + '|' + e.id + '|' + e.type + '|' + e.msg;
+    keys.add(key);
+    const isNew = !first && !seen.has(key), rk = roleKeyOf({ id: e.id, role: e.role }), role = rk ? ROLES[rk] : null;
+    const et = own(EVENT_TYPES, e.type) || { ko: clip(e.type, 14) || '이벤트', color: '#9aa7bd' }, st = own(STATES, e.state);
+    return '<li class="ev' + (isNew ? ' new' : '') + '"><span class="t">' + esc(hhmm(e.ts)) + '</span><span class="who">' +
+      chip(role ? role.short : clip(e.role, 12) || '?', role ? role.color : '#9aa7bd', true) + '<b>' + esc(clip(e.id, 32) || '-') + '</b>' +
+      '<span class="ety" style="--c:' + et.color + '">' + esc(et.ko) + (st && e.type === 'status' ? ' · ' + esc(st.ko) : '') + '</span></span>' +
+      '<span class="msg">' + esc(clip(e.msg, 240) || '-') + (e.product_id ? ' <code>' + esc(clip(e.product_id, 40)) + '</code>' : '') + '</span></li>';
+  }).join('');
+  ui.feedSeen = keys;
+  setHTML('feed', ui.el.feed, html || '<li class="none">아직 이벤트가 없습니다.</li>');
+}
+function renderProducts(list) {
+  const rows = list.map((p, i) => ({ p, i, t: Date.parse(p.created_at) }));
+  rows.sort((a, b) => (isFinite(a.t) && isFinite(b.t) && a.t !== b.t ? b.t - a.t : b.i - a.i));
+  ui.el.prodCount.textContent = rows.length ? rows.length + '개' : '';
+  const body = rows.map(({ p }) => {
+    const m = own(PRODUCT_STATUS, p.status) || { ko: clip(p.status, 14) || '-', color: '#9aa7bd' };
+    return '<tr><td class="ttl">' + esc(clip(p.title || p.id, 80)) + '<span class="sub">' + esc(clip(p.id, 40)) + (p.platform ? ' · ' + esc(clip(p.platform, 20)) : '') + '</span></td><td>' + chip(m.ko, m.color) + '</td><td class="r">' + (p.price_krw > 0 ? esc(fmtKRW(p.price_krw)) : '-') + '</td></tr>';
+  }).join('');
+  setHTML('products', ui.el.products, body ? '<table class="tbl"><thead><tr><th>상품</th><th>상태</th><th class="r">가격</th></tr></thead><tbody>' + body + '</tbody></table>' : '<div class="none">아직 등록된 상품이 없습니다.</div>');
+}
+function renderLegend(st) {
+  const cnt = {};
+  st.agents.forEach((a) => { cnt[a.state] = (cnt[a.state] || 0) + 1; });
+  setHTML('legend', ui.el.legend,
+    '<span class="sum">직원 ' + st.agents.length + '명</span>' +
+    STATE_KEYS.map((k) => '<span class="lg" style="--c:' + STATES[k].color + '"><i></i>' + STATES[k].ko + ' <b>' + (cnt[k] || 0) + '</b></span>').join('') +
+    (st.agents.length ? '' : '<span class="empty-note">· 직원 상태 파일이 아직 없어요 (<code>python scripts/office.py reset</code>)</span>'));
+}
+function setMode(mode) {
+  const live = mode === 'live', b = ui.el.modeBadge;
+  if (b) { b.className = 'badge ' + (live ? 'live' : 'demo'); b.textContent = live ? 'LIVE' : 'DEMO'; }
+  if (ui.el.demoHint) ui.el.demoHint.hidden = live;
+  if (ui.el.ribbon) ui.el.ribbon.hidden = live;
+}
+function renderPanel(st) {
+  try {
+    renderKpis(st.kpis, st.now); renderApprovals(st.approvals); renderFeed(st.events); renderProducts(st.products); renderLegend(st);
+    const d = new Date(), p = (n) => (n < 10 ? '0' : '') + n;
+    if (ui.el.updated) ui.el.updated.textContent = '갱신 ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + (model.mode === 'demo' ? ' · 시뮬레이션' : '');
+  } catch (e) { reportOnce(e); }
+}
+
+/* ---- 툴팁 ---- */
+function tipHTML(ac) {
+  const st = own(STATES, ac.state) || STATES.idle, rk = ac.roleKey, role = rk ? ROLES[rk] : null, title = role ? role.ko : (clip(ac.role, 16) || '직원');
+  return '<div class="tt-h"><span class="dot" style="--c:' + st.color + '"></span><b>' + esc(clip(ac.id, 40)) + '</b><span class="tt-role" style="--c:' + (role ? role.color : '#9aa7bd') + '">' + esc(title) + '</span></div>' +
+    '<div class="tt-r"><span>상태</span><i style="color:' + st.color + '">' + esc(st.ko) + '</i></div>' +
+    '<div class="tt-r"><span>작업</span><i>' + esc(clip(ac.task, 110) || '-') + '</i></div>' +
+    (ac.product_id ? '<div class="tt-r"><span>상품</span><i><code>' + esc(clip(ac.product_id, 40)) + '</code></i></div>' : '') +
+    '<div class="tt-r"><span>갱신</span><i>' + esc(relTime(ac.updated_at)) + '</i></div>';
+}
+function hideTip() { if (ui.el.tip) ui.el.tip.hidden = true; ui.tipPos = null; }
+function placeTip(ac, px, py) {                    // px,py = 스테이지 프레임 기준 좌표 (스크롤/리플로에 안전)
+  const tip = ui.el.tip, frame = ui.el.frame;
+  if (!tip || !frame) return;
+  ui.tipPos = [px, py, ac.id];
+  tip.innerHTML = tipHTML(ac); tip.hidden = false;
+  const fw = frame.clientWidth, fh = frame.clientHeight, tw = tip.offsetWidth || 200, th = tip.offsetHeight || 90;
+  let x = px + 16, y = py + 16;
+  if (x + tw > fw - 4) x = px - tw - 16;
+  if (y + th > fh - 4) y = py - th - 12;
+  tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px';
+}
+function showTip(ac, cx, cy) {
+  const frame = ui.el.frame;
+  if (!frame) return;
+  const fr = frame.getBoundingClientRect();
+  placeTip(ac, cx - fr.left, cy - fr.top);
+}
+function refreshTip() {
+  if (!ui.tipPos) return;
+  const ac = world.actors.get(ui.tipPos[2]);
+  if (ac) placeTip(ac, ui.tipPos[0], ui.tipPos[1]); else hideTip();
+}
+function onPointer(e) {
+  if (!canvas) return;
+  const r = canvas.getBoundingClientRect();
+  if (!r.width) return;
+  const ac = hitTest(((e.clientX - r.left) * LW) / r.width, ((e.clientY - r.top) * LH) / r.height);
+  world.hover = ac ? ac.id : null;
+  canvas.classList.toggle('pointer', !!ac);
+  if (e.type === 'pointerdown' && e.pointerType && e.pointerType !== 'mouse') world.pinned = ac ? ac.id : null;   // 터치: 탭하면 고정
+  const target = ac || (world.pinned ? world.actors.get(world.pinned) : null);
+  if (target) showTip(target, e.clientX, e.clientY); else hideTip();
+}
+function onLeave() { world.hover = null; if (!world.pinned) hideTip(); }
+
+/* ---- 폴링 ---- */
+let demo = null, errShown = false, liveFails = 0;
+const LIVE_GRACE = 3;                                  // LIVE 중 연속 이 횟수만큼 실패해야 DEMO 로 전환 (일시적 끊김에 가짜 데이터로 갈아엎지 않는다)
+function reportOnce(e) { if (!errShown) { errShown = true; if (typeof console !== 'undefined') console.error('[office]', e); } }
+function applySnapshot(st, mode) {
+  if (model.mode !== mode) { model.mode = mode; world.seatPrev = null; ui.feedSeen = null; setMode(mode); }
+  model.state = st; model.at = Date.now();
+  syncActors(st.agents);
+  renderPanel(st);
+  refreshTip();
+}
+async function fetchLive() {
+  if (typeof location !== 'undefined' && location.protocol === 'file:') throw new Error('file://');
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(() => ctl.abort(), 4000) : 0;
+  try {
+    const res = await fetch(API_URL, { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.json();
+    if (!isObj(raw)) throw new Error('bad payload');
+    return raw;
+  } finally { if (timer) clearTimeout(timer); }
+}
+let lastProbe = 0;
+async function pollOnce() {
+  let raw = null;
+  if (model.mode !== 'demo' || Date.now() - lastProbe >= PROBE_DEMO_MS) {   // DEMO 중에는 서버 재접속을 가끔만 시도 (콘솔 오류 소음 방지)
+    lastProbe = Date.now();
+    try { raw = await fetchLive(); } catch (e) { raw = null; }
+  }
+  try {
+    if (raw) { liveFails = 0; applySnapshot(normalizeState(raw), 'live'); }
+    else if (model.mode === 'live' && ++liveFails < LIVE_GRACE) {
+      if (ui.el.updated) ui.el.updated.textContent = '⚠ 연결 끊김 · 재시도 중 (' + liveFails + '/' + (LIVE_GRACE - 1) + ')';   // 마지막 실데이터 유지
+    } else { liveFails = 0; if (!demo) demo = makeDemo(); applySnapshot(normalizeState(demo.step(Date.now())), 'demo'); }
+  } catch (e) { reportOnce(e); }
+}
+function pollLoop() { pollOnce().then(() => setTimeout(pollLoop, POLL_MS), () => setTimeout(pollLoop, POLL_MS)); }
+
+/* ============================== 11. BOOT ============================== */
+function fitCanvas() {
+  const box = ui.el.stageBox;
+  if (!canvas || !box) return;
+  const avail = Math.floor(box.clientWidth), dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+  if (!avail) return;
+  let s = Math.max(1, Math.floor((avail * dpr) / LW)), cssW = (s * LW) / dpr;
+  if (cssW < avail * 0.85 || cssW > avail) { s = Math.max(1, Math.ceil((avail * dpr) / LW)); cssW = avail; }   // 좁은 화면/넘칠 때: 폭에 맞춤(비정수 배율). 가로세로 비율은 항상 유지
+  s = clamp(s, 1, 6);
+  canvas.style.width = cssW + 'px'; canvas.style.height = (cssW * LH) / LW + 'px';
+  canvas.style.imageRendering = cssW * dpr >= LW * s - 0.5 ? 'pixelated' : 'auto';
+  if (s !== S || canvas.width !== LW * s) { S = s; canvas.width = LW * S; canvas.height = LH * S; bakeCache.clear(); bgDirty = true; }
+}
+function loadFonts() {
+  if (typeof document === 'undefined' || !document.fonts || !document.fonts.load) return;
+  Promise.all(['9px Galmuri9', '7px Galmuri7', '11px Galmuri11'].map((f) => document.fonts.load(f, '가나다 AaBb 0123').catch(() => null)))
+    .then(() => { bakeCache.clear(); bgDirty = true; }).catch(() => {});
+}
+let lastT = 0, frameNo = 0, lastBoxW = 0;
+function frame(ms) {
+  const t = ms / 1000, dt = clamp(t - lastT, 0, 0.25);
+  lastT = t;
+  if ((frameNo++ & 15) === 0 && ui.el.stageBox && ui.el.stageBox.clientWidth !== lastBoxW) { lastBoxW = ui.el.stageBox.clientWidth; fitCanvas(); }   // ResizeObserver 보조
+  try { world.actors.forEach((ac) => updateActor(ac, dt)); render(t); } catch (e) { reportOnce(e); }
+  requestAnimationFrame(frame);
+}
+function boot() {
+  const $ = (id) => document.getElementById(id);
+  ['stage', 'stageBox', 'tip', 'modeBadge', 'demoHint', 'ribbon', 'updated', 'legend', 'kpis', 'approvals', 'feed', 'products', 'apCount', 'feedCount', 'prodCount', 'namesToggle']
+    .forEach((id) => { ui.el[id] = $(id); });
+  ui.el.frame = ui.el.stageBox ? ui.el.stageBox.parentNode : null;
+  canvas = ui.el.stage; ctx = canvas.getContext('2d');
+  fitCanvas();
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fitCanvas).observe(ui.el.stageBox); else window.addEventListener('resize', fitCanvas);
+  window.addEventListener('galmuri', loadFonts); loadFonts();
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { bakeCache.clear(); bgDirty = true; });
+  ['pointermove', 'pointerdown'].forEach((n) => canvas.addEventListener(n, onPointer));
+  canvas.addEventListener('pointerleave', onLeave);
+  const tgl = ui.el.namesToggle;
+  if (tgl) {
+    try { tgl.checked = localStorage.getItem('office.names') === '1'; } catch (e) { /* 저장소 사용 불가 */ }
+    world.showNames = !!tgl.checked;
+    tgl.addEventListener('change', () => { world.showNames = tgl.checked; try { localStorage.setItem('office.names', tgl.checked ? '1' : '0'); } catch (e) { /* ignore */ } });
+  }
+  pollLoop();
+  requestAnimationFrame(frame);
+}
+
+/* 테스트용 노출 (브라우저에서는 window.__OFFICE__) */
+const OFFICE_API = {
+  LW, LH, ROLES, STATES, ROOMS, DESKS, TABLES, hash32, mulberry32, paletteFor, fmtKRW, fmtNum, relTime, hhmm, esc, prefixOf, roleKeyOf, roomOf, normState, cmpAgent,
+  seatFor, meetSeat, tableSeatPos, allocateSeats, deskCap, normalizeState, makeDemo, mixHex, bubbleOf, world, model, ui, syncActors, updateActor, render, applySnapshot, pollOnce,
+  fitCanvas, hitTest, buildDrawables, drawScene, boot, getS: () => S,
+};
+if (typeof window !== 'undefined') window.__OFFICE__ = OFFICE_API;
+if (typeof document !== 'undefined' && document.getElementById && document.getElementById('stage')) boot();
+</script>
+</body>
+</html>

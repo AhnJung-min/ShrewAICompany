@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "office",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["scripts/office_server.py", "--port", "8765"],
+      "port": 8765
+    }
+  ]
+}
