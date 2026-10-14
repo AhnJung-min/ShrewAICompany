@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI REVENUE CO. · 픽셀 오피스</title>
+<title>SHREW AI CO. · 픽셀 오피스</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23f2c14e'/%3E%3Crect x='2' y='2' width='12' height='12' fill='%23a3283a'/%3E%3Crect x='5' y='5' width='6' height='6' fill='%23f6d58a'/%3E%3C/svg%3E">
 <!-- Galmuri(갈무리) 픽셀 폰트: 선택 사항. 오프라인이면 아래 폰트 스택의 시스템 폰트/monospace 로 대체된다. -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -19,7 +19,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 var(--font)}
 body{min-height:100vh;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:8px 8px}
-code,kbd{font-family:var(--font);background:#1a1625;border:1px solid var(--line);padding:0 5px;color:var(--gold);word-break:break-all}
+code,kbd{font-family:var(--font);background:#1a1625;border:1px solid var(--line);padding:0 5px;color:var(--gold);overflow-wrap:anywhere}
 b{font-weight:700}
 
 /* ---- header ---- */
@@ -123,7 +123,7 @@ b{font-weight:700}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="logo" aria-hidden="true"></span><span>AI REVENUE CO.</span><small>AI 직원 오피스 · Pixel Office</small></div>
+  <div class="brand"><span class="logo" aria-hidden="true"></span><span>SHREW AI CO.</span><small>AI 직원 오피스 · Pixel Office</small></div>
   <div class="spacer"></div>
   <label class="tog"><input type="checkbox" id="namesToggle"> 이름표 보기</label>
   <span class="meta" id="updated">연결 중…</span>
@@ -153,7 +153,7 @@ b{font-weight:700}
 <script>
 'use strict';
 /* =====================================================================
- * AI REVENUE CO. — 픽셀 오피스 대시보드 (단일 파일, 외부 이미지/스크립트 없음)
+ * SHREW AI CO. — 픽셀 오피스 대시보드 (단일 파일, 외부 이미지/스크립트 없음)
  *   1. CONSTANTS      상수·라벨·방 배치
  *   2. UTILS          해시/RNG/색/포맷
  *   3. DRAW HELPERS   픽셀 프리미티브, 5x7 비트맵 폰트, 베이크 캐시
@@ -419,8 +419,11 @@ function line(g, x0, y0, x1, y1, c) {
     if (e2 < dx) { err += dx; y0 += sy; }
   }
 }
-/* 5x7 비트맵 폰트 (러그의 "AI REVENUE CO." 용). 필요한 글자만 정의 */
+/* 5x7 비트맵 폰트 (러그의 "SHREW AI CO." 용). 필요한 글자만 정의 */
 const GLYPH = {
+  S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+  H: ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
   I: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'],
   R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
@@ -568,7 +571,7 @@ function rugRound(g, cx, cy, rx, ry, c1, c2, c3) {
   ell(g, cx, cy, rx, ry, c1); ell(g, cx, cy, rx - 2, ry - 2, c2); ring(g, cx, cy, rx - 5, Math.max(2, ry - 4), c3);
 }
 function drawCeoRug(g) {
-  const x = 170, y = 100, w = 108, h = 56, label = 'AI REVENUE CO.';
+  const x = 170, y = 100, w = 108, h = 56, label = 'SHREW AI CO.';
   R(g, x, y, w, h, '#6e1b29'); R(g, x + 2, y + 2, w - 4, h - 4, '#d9a441'); R(g, x + 3, y + 3, w - 6, h - 6, '#a3283a');
   R(g, x + 6, y + 6, w - 12, h - 12, '#8c2032'); box(g, x + 6, y + 6, w - 12, h - 12, '#c0394f');
   for (let i = 0; i < 8; i++) { R(g, x + 12 + i * 12, y + 10, 3, 3, '#d9a441'); R(g, x + 12 + i * 12, y + h - 13, 3, 3, '#d9a441'); }
