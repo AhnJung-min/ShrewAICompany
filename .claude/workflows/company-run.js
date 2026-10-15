@@ -29,6 +29,11 @@ const SKIP_KICKOFF = !!A.skipKickoff          // true 면 G0 를 건너뛰고 �
 const MEMBER = 'sonnet'
 const LEAD = 'opus'
 const LEADS = { ceo: 1, 'pm-lead': 1, 'maker-lead': 1, 'qa-lead': 1, 'marketer-lead': 1 }
+// 이미 APPROVED 로 끝난 관문은 다시 돌지 않는다. 예: { "*": ["G1"], "seller-margin-calculator": ["G2"] } ("*" = 모든 상품)
+const GATES_DONE = A.gatesDone || {}
+const gateDone = (p, g) => [].concat(GATES_DONE['*'] || [], GATES_DONE[p.id] || []).includes(g)
+// 이어서 할 때 팀장이 이전 결재 기록을 덮어쓰지 않고 이어 적게 한다
+const CONT = FROM > 0 ? ' 파일 끝에 이 관문의 이전 라운드 기록이 있으면 먼저 읽고, 지난 요청이 반영됐는지부터 확인한 뒤 라운드 번호를 다음 번호로 이어 적는다.' : ''
 
 // ───────── 스키마 ─────────
 const BRIEF = {
@@ -144,7 +149,7 @@ function hire(role, k, p, phaseTitle, task, schema) {
 // 팀장 관문: 검토 → (REVISE 면) 팀원 1회 수정 → 팀장 확정. 반환: { approved, gate }
 async function leadGate(lead, member, k, p, phaseTitle, gateName, block, reviewTask, reviseTask) {
   let gate = await hire(lead, k, p, phaseTitle,
-    `${gateName} (라운드 1): ${reviewTask}\n결정: APPROVED(통과) / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP(이 상품은 진행하지 않음).\n결정과 이유를 해당 파일 끝에 "${block}" 블록으로 남긴다.`, GATE)
+    `${gateName} (라운드 1): ${reviewTask}${CONT}\n결정: APPROVED(통과) / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP(이 상품은 진행하지 않음).\n결정과 이유를 해당 파일 끝에 "${block}" 블록으로 남긴다.`, GATE)
   if (gate && gate.decision === 'REVISE') {
     await hire(member, k, p, phaseTitle, `${gateName}에서 팀장이 수정을 요청했다. 아래를 모두 반영하고 무엇을 고쳤는지 해당 파일에 짧게 적는다.\n${JSON.stringify(gate.fixes_requested, null, 1)}\n${reviseTask}`)
     gate = await hire(lead, k, p, phaseTitle,
@@ -205,8 +210,9 @@ const results = await pipeline(
   async (_, p, k) => {
     if (FROM === 0) await hire('pm', k, p, '기획팀',
       `상품 사양서 spec.md 를 작성한다: 목표 구매자와 그들의 문제, 수요 근거(측정/추론 구분), 구성(목차/시트/기능 목록), 각 파일별 상세 요구사항, 완성 기준(Definition of Done), 검수 체크리스트, 경쟁 대비 차별점, 금지 문구, 하지 말아야 할 것. CEO 지시: ${p.ceo_notes}. 끝나면 기획팀장에게 handoff 이벤트를 남긴다.`)
+    if (gateDone(p, 'G1')) return { p, k, g1: { decision: 'APPROVED', reasons: ['이전 실행에서 승인됨 — spec.md 의 ## 기획팀장 승인 참조'] } }
     const g1 = await leadGate('pm-lead', 'pm', k, p, '기획팀', 'G1 사양 승인', '## 기획팀장 승인',
-      `${FROM > 0 ? '이 상품의 spec.md 는 이전 실행에서 써졌지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. ' : ''}spec.md 가 수요 근거, 한 배치 범위, 완성 기준, 검수 체크리스트, 금지 문구를 갖췄는지, 기존 상품과 겹치지 않는지 확인한다.`,
+      `${FROM > 0 ? '이 상품의 spec.md 는 이전 실행에서 써졌다. ' : ''}spec.md 가 수요 근거, 한 배치 범위, 완성 기준, 검수 체크리스트, 금지 문구를 갖췄는지, 기존 상품과 겹치지 않는지 확인한다.`,
       `spec.md 를 고치고 spec.md 의 "## 변경 이력" 에 무엇을 고쳤는지 남긴다.`)
     return g1.approved ? { p, k, g1: g1.gate } : hold({ p, k }, 'G1 기획팀장 DROP')
   },
@@ -215,8 +221,9 @@ const results = await pipeline(
   async ctx => {
     if (ctx.dropped || FROM > 2) return ctx
     if (FROM === 2) {                                 // 산출물은 이미 있다: 제작팀장 결재만 받는다
+      if (gateDone(ctx.p, 'G2')) return { ...ctx, g2: { decision: 'APPROVED', reasons: ['이전 실행에서 승인됨 — build_notes.md 의 ## 제작팀장 승인 참조'] } }
       const g2only = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작팀', 'G2 제작 승인', '## 제작팀장 승인',
-        `이 상품의 산출물은 이전 실행에서 만들어졌지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. 산출물을 직접 열어/실행해 spec·design 과 맞는지, 파일 위생, 사용 설명이 실제 파일과 맞는지 확인한다. 기록은 build_notes.md 끝에.`,
+        `이 상품의 산출물은 이전 실행에서 만들어졌다. 산출물을 직접 열어/실행해 spec·design 과 맞는지, 파일 위생, 사용 설명이 실제 파일과 맞는지 확인한다. 기록은 build_notes.md 끝에.`,
         `산출물과 build_notes.md 를 고치고, "## 제작팀장 승인" 바로 위 "## 팀장 요청 수정 내역" 에 남긴다.`)
       return g2only.approved ? { ...ctx, g2: g2only.gate } : hold(ctx, 'G2 제작팀장 DROP')
     }

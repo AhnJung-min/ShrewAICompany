@@ -25,6 +25,11 @@ const SKIP_KICKOFF = !!A.skipKickoff
 const MEMBER = 'sonnet'
 const LEAD = 'opus'
 const LEADS = { ceo: 1, 'pm-lead': 1, 'maker-lead': 1, 'qa-lead': 1, 'marketer-lead': 1 }   // docs/11_팀_체계.md
+// 이미 APPROVED 로 끝난 관문은 다시 돌지 않는다. 예: { "*": ["G1"], "weekly-retro-lite": ["G2"] } ("*" = 모든 템플릿)
+const GATES_DONE = A.gatesDone || {}
+const gateDone = (p, g) => [].concat(GATES_DONE['*'] || [], GATES_DONE[p.id] || []).includes(g)
+// 이어서 할 때 팀장이 이전 결재 기록을 덮어쓰지 않고 이어 적게 한다
+const CONT = FROM > 0 ? ' 파일 끝에 이 관문의 이전 라운드 기록이 있으면 먼저 읽고, 지난 요청이 반영됐는지부터 확인한 뒤 라운드 번호를 다음 번호로 이어 적는다.' : ''
 const NOTION = 'mcp__4e22fdb6-6c1b-4813-b6f3-be008f96b591__'
 const NOTION_TOOLS = ['notion-fetch', 'notion-search', 'notion-create-pages', 'notion-update-page', 'notion-create-database', 'notion-update-data-source', 'notion-create-view', 'notion-update-view', 'notion-query-data-sources', 'notion-move-pages'].map(t => NOTION + t).join(',')
 
@@ -140,7 +145,7 @@ const LGATE = {
 // 팀장 관문: 검토 → (REVISE 면) 팀원 1회 수정 → 팀장 확정
 async function leadGate(lead, member, k, p, phaseTitle, gateName, block, reviewTask, reviseTask) {
   let gate = await hire(lead, k, p, phaseTitle,
-    `${gateName} (라운드 1): ${reviewTask}\n결정: APPROVED / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP. 결정과 이유를 "${block}" 블록으로 남긴다.`, LGATE)
+    `${gateName} (라운드 1): ${reviewTask}${CONT}\n결정: APPROVED / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP. 결정과 이유를 "${block}" 블록으로 남긴다.`, LGATE)
   if (gate && gate.decision === 'REVISE') {
     await hire(member, k, p, phaseTitle, `${gateName}에서 팀장이 수정을 요청했다. 모두 반영한다.\n${JSON.stringify(gate.fixes_requested, null, 1)}\n${reviseTask}`)
     gate = await hire(lead, k, p, phaseTitle,
@@ -169,8 +174,8 @@ const results = await pipeline(
 
   (_, p, k) => (FROM > 0 ? Promise.resolve() : hire('pm', k, p, '기획·디자인',
     `템플릿 구조 사양서 spec.md 를 작성한다: 대상 사용자와 그들이 매일/매주 하는 일, 페이지 트리(홈 → 하위 페이지), 각 데이터베이스(이름, 속성 이름·타입·옵션, 관계/롤업/수식), DB별 뷰(종류, 필터, 정렬, 그룹), 홈 화면 구성, 샘플 데이터 행(구체 값), "처음 시작하기" 가이드 문구, 완성 기준(Definition of Done), 검수 체크리스트. 브리프보다 더 적게 만들어도 된다 — 꼭 필요한 것만. CEO 지시: ${p.ceo_notes}`)
-    ).then(() => leadGate('pm-lead', 'pm', k, p, '기획·디자인', 'G1 사양 승인', '## 기획팀장 승인',
-      (FROM > 0 ? '이 템플릿의 spec.md 는 이전 실행에서 써졌지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. ' : '') + 'spec.md 가 대상 사용자의 실제 루틴, 꼭 필요한 DB·뷰만, 완성 기준, 검수 체크리스트를 갖췄는지, 기존 템플릿과 겹치지 않는지 본다. 기록은 spec.md 끝에.',
+    ).then(() => gateDone(p, 'G1') ? { approved: true } : leadGate('pm-lead', 'pm', k, p, '기획·디자인', 'G1 사양 승인', '## 기획팀장 승인',
+      (FROM > 0 ? '이 템플릿의 spec.md 는 이전 실행에서 써졌다. ' : '') + 'spec.md 가 대상 사용자의 실제 루틴, 꼭 필요한 DB·뷰만, 완성 기준, 검수 체크리스트를 갖췄는지, 기존 템플릿과 겹치지 않는지 본다. 기록은 spec.md 끝에.',
       'spec.md 를 고치고 "## 변경 이력" 에 남긴다.'))
     .then(g1 => g1.approved ? { p, k } : { p, k, dropped: 'G1 기획팀장 DROP' }),
 
@@ -180,9 +185,9 @@ const results = await pipeline(
 
   ctx => ctx.dropped ? ctx : FROM > 2 ? (async () => {
     const built = { root_page_url: `${ROOT}/products/${BATCH}/${ctx.p.id}/build_log.md 에 적힌 템플릿 루트 URL`, pages: [], databases: [], summary: '이전 실행에서 노션에 구축됨 — build_log.md 와 qa_report.md 의 이전 라운드 기록 참조' }
-    if (FROM > 3) return { ...ctx, built }
+    if (FROM > 3 || gateDone(ctx.p, 'G2')) return { ...ctx, built }
     const g2only = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작', 'G2 제작 승인', '## 제작팀장 승인',
-      '이 템플릿은 이전 실행에서 노션에 구축됐지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. build_log.md 의 루트와 모든 DB 를 notion-fetch 로 직접 열어 spec·design 대로인지(DB 스키마, 뷰, 샘플 행, 홈 레이아웃, 아이콘 통일, 가이드 토글) 확인한다. qa_report.md 의 이전 검수 라운드도 참고한다. 기록은 build_log.md 끝에.',
+      '이 템플릿은 이전 실행에서 노션에 구축됐다. build_log.md 의 루트와 모든 DB 를 notion-fetch 로 직접 열어 spec·design 대로인지(DB 스키마, 뷰, 샘플 행, 홈 레이아웃, 아이콘 통일, 가이드 토글) 확인한다. qa_report.md 의 이전 검수 라운드도 참고한다. 기록은 build_log.md 끝에.',
       '노션에서 고치고 build_log.md 의 "## 제작팀장 승인" 바로 위 "## 팀장 요청 수정 내역" 에 남긴다.')
     return g2only.approved ? { ...ctx, built } : { ...ctx, built, dropped: 'G2 제작팀장 DROP' }
   })() : hire('maker', ctx.k, ctx.p, '제작',
