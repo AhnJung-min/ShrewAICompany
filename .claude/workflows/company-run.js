@@ -144,11 +144,11 @@ function hire(role, k, p, phaseTitle, task, schema) {
 // 팀장 관문: 검토 → (REVISE 면) 팀원 1회 수정 → 팀장 확정. 반환: { approved, gate }
 async function leadGate(lead, member, k, p, phaseTitle, gateName, block, reviewTask, reviseTask) {
   let gate = await hire(lead, k, p, phaseTitle,
-    `${gateName}: ${reviewTask}\n결정: APPROVED(통과) / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP(이 상품은 진행하지 않음).\n결정과 이유를 해당 파일 끝에 "${block}" 블록으로 남긴다.`, GATE)
+    `${gateName} (라운드 1): ${reviewTask}\n결정: APPROVED(통과) / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP(이 상품은 진행하지 않음).\n결정과 이유를 해당 파일 끝에 "${block}" 블록으로 남긴다.`, GATE)
   if (gate && gate.decision === 'REVISE') {
     await hire(member, k, p, phaseTitle, `${gateName}에서 팀장이 수정을 요청했다. 아래를 모두 반영하고 무엇을 고쳤는지 해당 파일에 짧게 적는다.\n${JSON.stringify(gate.fixes_requested, null, 1)}\n${reviseTask}`)
     gate = await hire(lead, k, p, phaseTitle,
-      `${gateName} 재검토(마지막): 팀원 수정본을 확인한다. 남은 작은 문제는 직접 고치고(fixed_myself) APPROVED 로 확정하거나, 여전히 판매할 수 없으면 DROP. 이번에는 REVISE 를 쓰지 않는다. "${block}" 블록을 갱신한다.\n지난 요청: ${JSON.stringify(gate.fixes_requested)}`, GATE)
+      `${gateName} (라운드 2, 마지막): 팀원 수정본을 확인한다. 남은 작은 문제는 직접 고치고(fixed_myself) APPROVED 로 확정하거나, 여전히 판매할 수 없으면 DROP. 이번에는 REVISE 를 쓰지 않는다. "${block}" 블록을 갱신한다.\n지난 요청: ${JSON.stringify(gate.fixes_requested)}`, GATE)
   }
   return { approved: !!gate && gate.decision === 'APPROVED', gate }
 }
@@ -178,8 +178,8 @@ if (SKIP_KICKOFF) {
 } else {
 const pmReview = await hire('pm-lead', 0, null, '대표실',
   briefs.length
-    ? `G0 사전 검토: 아래 브리프마다 수요 근거, 기존 상품과의 중복, 한 배치 안에 만들 수 있는 범위, 규정 위험을 보고 GO/CHANGE/DROP 을 권고한다(notes 에 이유와 바꿀 점).\n브리프:\n${JSON.stringify(briefs, null, 1)}`
-    : `G0 사전 검토: 리서처 아이디어 중 최대 ${COUNT}개를 골라 완전한 브리프로 확정해 new_briefs 에 넣고(spec 은 별도 작성자가 추가 조사 없이 만들 수 있을 만큼 구체적으로), items 에 고른 것 GO, 버린 것 DROP 과 이유를 적는다.\n리서치 결과:\n${ideasJson}`,
+    ? `G0 사전 검토 (심사 기록은 ${ROOT}/products/${BATCH}/g0-pm-lead.md 에 쓴다): 아래 브리프마다 수요 근거, 기존 상품과의 중복, 한 배치 안에 만들 수 있는 범위, 규정 위험을 보고 GO/CHANGE/DROP 을 권고한다(notes 에 이유와 바꿀 점).\n브리프:\n${JSON.stringify(briefs, null, 1)}`
+    : `G0 사전 검토 (심사 기록은 ${ROOT}/products/${BATCH}/g0-pm-lead.md 에 쓴다): 리서처 아이디어 중 최대 ${COUNT}개를 골라 완전한 브리프로 확정해 new_briefs 에 넣고(spec 은 별도 작성자가 추가 조사 없이 만들 수 있을 만큼 구체적으로), items 에 고른 것 GO, 버린 것 DROP 과 이유를 적는다.\n리서치 결과:\n${ideasJson}`,
   LEAD_REVIEW)
 if (!briefs.length) briefs = (pmReview && pmReview.new_briefs) || []
 
@@ -203,18 +203,23 @@ const results = await pipeline(
 
   // 기획팀: 기획자 → G1 기획팀장
   async (_, p, k) => {
-    if (FROM > 0) return { p, k }                 // 이어서 하기: 사양은 이미 있다
-    await hire('pm', k, p, '기획팀',
+    if (FROM === 0) await hire('pm', k, p, '기획팀',
       `상품 사양서 spec.md 를 작성한다: 목표 구매자와 그들의 문제, 수요 근거(측정/추론 구분), 구성(목차/시트/기능 목록), 각 파일별 상세 요구사항, 완성 기준(Definition of Done), 검수 체크리스트, 경쟁 대비 차별점, 금지 문구, 하지 말아야 할 것. CEO 지시: ${p.ceo_notes}. 끝나면 기획팀장에게 handoff 이벤트를 남긴다.`)
     const g1 = await leadGate('pm-lead', 'pm', k, p, '기획팀', 'G1 사양 승인', '## 기획팀장 승인',
-      `spec.md 가 수요 근거, 한 배치 범위, 완성 기준, 검수 체크리스트, 금지 문구를 갖췄는지, 기존 상품과 겹치지 않는지 확인한다.`,
-      `spec.md 를 고친다.`)
+      `${FROM > 0 ? '이 상품의 spec.md 는 이전 실행에서 써졌지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. ' : ''}spec.md 가 수요 근거, 한 배치 범위, 완성 기준, 검수 체크리스트, 금지 문구를 갖췄는지, 기존 상품과 겹치지 않는지 확인한다.`,
+      `spec.md 를 고치고 spec.md 의 "## 변경 이력" 에 무엇을 고쳤는지 남긴다.`)
     return g1.approved ? { p, k, g1: g1.gate } : hold({ p, k }, 'G1 기획팀장 DROP')
   },
 
   // 제작팀: 디자이너 → 제작자 → G2 제작팀장
   async ctx => {
-    if (ctx.dropped || FROM > 1) return ctx
+    if (ctx.dropped || FROM > 2) return ctx
+    if (FROM === 2) {                                 // 산출물은 이미 있다: 제작팀장 결재만 받는다
+      const g2only = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작팀', 'G2 제작 승인', '## 제작팀장 승인',
+        `이 상품의 산출물은 이전 실행에서 만들어졌지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. 산출물을 직접 열어/실행해 spec·design 과 맞는지, 파일 위생, 사용 설명이 실제 파일과 맞는지 확인한다. 기록은 build_notes.md 끝에.`,
+        `산출물과 build_notes.md 를 고치고, "## 제작팀장 승인" 바로 위 "## 팀장 요청 수정 내역" 에 남긴다.`)
+      return g2only.approved ? { ...ctx, g2: g2only.gate } : hold(ctx, 'G2 제작팀장 DROP')
+    }
     if (FROM < 1) await hire('designer', ctx.k, ctx.p, '제작팀',
       `spec.md 를 읽고 design.md 를 작성한다: 정보 구조, 레이아웃, 서체/색/아이콘 규칙, 각 산출물 파일의 화면/페이지 구성, 썸네일·대표 이미지 브리프(문구, 구도, 색). 썸네일은 오너 결정에 따라 Claude Design 캔버스에서 따로 만들므로, 브리프는 Shrew AI Company 디자인 시스템(docs/91_외부_연동.md 의 아티팩트 링크) 토큰 이름으로 쓰고 크몽 썸네일 규격(652×488)을 기준으로 한다. spec 에 모순·누락이 있으면 spec.md 끝에 "## 디자이너 코멘트"로 남기고 design.md 에서는 합리적으로 해결한다. 끝나면 제작자에게 handoff.`)
     const made = await hire('maker', ctx.k, ctx.p, '제작팀',
@@ -222,7 +227,7 @@ const results = await pipeline(
       MADE)
     const g2 = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작팀', 'G2 제작 승인', '## 제작팀장 승인',
       `산출물을 직접 열어/실행해 spec·design 과 맞는지, 파일 위생(매크로·외부 링크·개인정보·절대경로 없음), 사용 설명이 실제 파일과 맞는지 확인한다. 기록은 build_notes.md 끝에.\n제작자 보고: ${JSON.stringify(made)}`,
-      `산출물과 build_notes.md 를 고치고 다시 열어/실행해 확인한다.`)
+      `산출물과 build_notes.md 를 고치고 다시 열어/실행해 확인한 뒤, "## 제작팀장 승인" 바로 위 "## 팀장 요청 수정 내역" 에 남긴다.`)
     return g2.approved ? { ...ctx, made, g2: g2.gate } : hold(ctx, 'G2 제작팀장 DROP')
   },
 
@@ -231,7 +236,7 @@ const results = await pipeline(
     if (ctx.dropped) return ctx
     if (FROM > 2) return { ...ctx, qa: { verdict: 'PASS', score_0_10: null, defects: [], summary: `기존 ${ROOT}/products/${BATCH}/${ctx.p.id}/qa_report.md 의 품질팀장 판정 참조` } }
     const memberTask = round => `상품 폴더의 산출물을 적대적으로 검수한다(라운드 ${round}). "이대로 돈 받고 팔 수 있다"를 반박하려고 시도하라. spec.md 의 완성 기준과 검수 체크리스트를 하나씩 확인하고, 파일을 실제로 열거나 실행해 본다. 내용 오류, 빈약한 분량, 플레이스홀더, 깨진 수식/링크, 맞춤법, 저작권 의심, 과장 표현을 찾는다. 확신이 없으면 FAIL. qa_report.md 에 라운드별로 누적 기록한다. 네 판정은 의견이고 최종 판정은 품질팀장이 한다.`
-    const leadTask = (round, rep) => `G3 품질 판정(라운드 ${round}): 검수자 보고를 읽고, 가장 심각한 결함은 직접 다시 확인한 뒤 최종 PASS/FAIL 을 낸다. blocker/major 가 남아 있거나 확신이 없으면 FAIL. defects 에는 제작자가 고칠 것만 남긴다. qa_report.md 끝에 "## 품질팀장 판정" 블록(라운드, 판정, 이유)을 남긴다.\n검수자 보고: ${JSON.stringify(rep)}`
+    const leadTask = (round, rep) => `G3 품질 판정(${round === 1 ? '최초' : `재판정 ${round - 1}/${MAX_FIX}`}, 라운드 ${round}): 검수자 보고를 읽고, 가장 심각한 결함은 직접 다시 확인한 뒤 최종 PASS/FAIL 을 낸다. blocker/major 가 남아 있거나 확신이 없으면 FAIL. defects 에는 제작자가 고칠 것만 남긴다. qa_report.md 끝에 "## 품질팀장 판정" 블록(라운드, 판정, 이유)을 남긴다.\n검수자 보고: ${JSON.stringify(rep)}`
     let round = 1
     let rep = await hire('qa', ctx.k, ctx.p, '품질팀', memberTask(round), QA)
     let verdict = await hire('qa-lead', ctx.k, ctx.p, '품질팀', leadTask(round, rep), QA)
@@ -257,7 +262,7 @@ const results = await pipeline(
       `compliance.md 를 작성한다: 플랫폼 판매 정책·AI 생성물 규정, 인공지능 기본법 표시 의무, 표시광고법/추천·보증 심사지침, 저작권(사용한 폰트·이미지·데이터 출처 라이선스), 개인정보, 오너 할 일(사업자등록·통신판매업 등 일반 체크리스트) . listing.md 의 규정 위반 문구는 직접 고친다. 이상 없으면 tracker.py 로 상품을 products.csv 에 등록·갱신한다(상태 qa_passed, 배치 ${BATCH}, 가격·플랫폼 포함).`)
     const g4 = await leadGate('marketer-lead', 'marketer', ctx.k, ctx.p, '사업운영팀', 'G4 판매 승인', '## 사업운영팀장 승인',
       `listing.md 와 compliance.md 를 함께 본다: 크몽 규정, 정직성(과장·수익 보장 없음, AI 활용 표시, 플랫폼 기본 환불 문구), 키워드·제목 품질, 가격 근거, 트래커 등록 상태. 기록은 compliance.md 끝에.`,
-      `listing.md 와 compliance.md 를 고친다(마케터와 재무·법무 몫을 모두 반영).`)
+      `listing.md 와 compliance.md 를 고친다(마케터와 재무·법무 몫을 모두 반영). 무엇을 고쳤는지 compliance.md 의 "## 팀장 요청 수정 내역" 에 남긴다.`)
     return g4.approved ? { ...ctx, g4: g4.gate } : hold(ctx, 'G4 사업운영팀장 DROP')
   },
 

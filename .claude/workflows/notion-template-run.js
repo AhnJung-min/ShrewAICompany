@@ -140,11 +140,11 @@ const LGATE = {
 // 팀장 관문: 검토 → (REVISE 면) 팀원 1회 수정 → 팀장 확정
 async function leadGate(lead, member, k, p, phaseTitle, gateName, block, reviewTask, reviseTask) {
   let gate = await hire(lead, k, p, phaseTitle,
-    `${gateName}: ${reviewTask}\n결정: APPROVED / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP. 결정과 이유를 "${block}" 블록으로 남긴다.`, LGATE)
+    `${gateName} (라운드 1): ${reviewTask}\n결정: APPROVED / REVISE(팀원이 고칠 것을 fixes_requested 에 구체적으로) / DROP. 결정과 이유를 "${block}" 블록으로 남긴다.`, LGATE)
   if (gate && gate.decision === 'REVISE') {
     await hire(member, k, p, phaseTitle, `${gateName}에서 팀장이 수정을 요청했다. 모두 반영한다.\n${JSON.stringify(gate.fixes_requested, null, 1)}\n${reviseTask}`)
     gate = await hire(lead, k, p, phaseTitle,
-      `${gateName} 재검토(마지막): 남은 작은 문제는 직접 고치고 APPROVED 로 확정하거나, 여전히 안 되면 DROP. 이번에는 REVISE 를 쓰지 않는다. "${block}" 블록을 갱신한다.\n지난 요청: ${JSON.stringify(gate.fixes_requested)}`, LGATE)
+      `${gateName} (라운드 2, 마지막): 남은 작은 문제는 직접 고치고 APPROVED 로 확정하거나, 여전히 안 되면 DROP. 이번에는 REVISE 를 쓰지 않는다. "${block}" 블록을 갱신한다.\n지난 요청: ${JSON.stringify(gate.fixes_requested)}`, LGATE)
   }
   return { approved: !!gate && gate.decision === 'APPROVED', gate }
 }
@@ -167,32 +167,39 @@ log(SKIP_KICKOFF ? `G0 생략: 기존 BATCH_BRIEF.md 로 ${STAGES[FROM]} 단계�
 const results = await pipeline(
   products,
 
-  (_, p, k) => FROM > 0 ? { p, k } : hire('pm', k, p, '기획·디자인',
+  (_, p, k) => (FROM > 0 ? Promise.resolve() : hire('pm', k, p, '기획·디자인',
     `템플릿 구조 사양서 spec.md 를 작성한다: 대상 사용자와 그들이 매일/매주 하는 일, 페이지 트리(홈 → 하위 페이지), 각 데이터베이스(이름, 속성 이름·타입·옵션, 관계/롤업/수식), DB별 뷰(종류, 필터, 정렬, 그룹), 홈 화면 구성, 샘플 데이터 행(구체 값), "처음 시작하기" 가이드 문구, 완성 기준(Definition of Done), 검수 체크리스트. 브리프보다 더 적게 만들어도 된다 — 꼭 필요한 것만. CEO 지시: ${p.ceo_notes}`)
-    .then(() => leadGate('pm-lead', 'pm', k, p, '기획·디자인', 'G1 사양 승인', '## 기획팀장 승인',
-      'spec.md 가 대상 사용자의 실제 루틴, 꼭 필요한 DB·뷰만, 완성 기준, 검수 체크리스트를 갖췄는지, 기존 템플릿과 겹치지 않는지 본다. 기록은 spec.md 끝에.',
-      'spec.md 를 고친다.'))
+    ).then(() => leadGate('pm-lead', 'pm', k, p, '기획·디자인', 'G1 사양 승인', '## 기획팀장 승인',
+      (FROM > 0 ? '이 템플릿의 spec.md 는 이전 실행에서 써졌지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. ' : '') + 'spec.md 가 대상 사용자의 실제 루틴, 꼭 필요한 DB·뷰만, 완성 기준, 검수 체크리스트를 갖췄는지, 기존 템플릿과 겹치지 않는지 본다. 기록은 spec.md 끝에.',
+      'spec.md 를 고치고 "## 변경 이력" 에 남긴다.'))
     .then(g1 => g1.approved ? { p, k } : { p, k, dropped: 'G1 기획팀장 DROP' }),
 
   ctx => (ctx.dropped || FROM > 1) ? ctx : hire('designer', ctx.k, ctx.p, '기획·디자인',
     `spec.md 를 읽고 design.md 를 쓴다: 이 템플릿의 노션 미적 가이드 — 아이콘 세트(페이지·DB별로 정확한 아이콘 식별자 또는 이모지), accent 색 1개와 쓰는 곳, 커버(없음 또는 노션 기본 단색 커버 URL), 홈 화면 와이어프레임(어느 블록이 어느 column 에), callout/토글 사용 위치, 뷰별 표시 속성, 샘플 데이터 문체. 위 미적 기준을 이 템플릿에 구체 값으로 적용한다. spec 에서 미적으로 지저분해지는 부분(속성 과다, 뷰 과다)이 있으면 spec.md 끝에 "## 디자이너 코멘트"로 줄이자고 제안하고 design.md 에서는 줄인 안으로 설계한다. 판매 썸네일 브리프(문구, 구도)도 마지막에 적는다.`)
     .then(() => ctx),
 
-  ctx => ctx.dropped ? ctx : FROM > 2 ? { ...ctx, built: { root_page_url: `${ROOT}/products/${BATCH}/${ctx.p.id}/build_log.md 에 적힌 템플릿 루트 URL`, pages: [], databases: [], summary: '이전 실행에서 노션에 구축됨 — build_log.md 와 qa_report.md 의 이전 라운드 기록 참조' } } : hire('maker', ctx.k, ctx.p, '제작',
+  ctx => ctx.dropped ? ctx : FROM > 2 ? (async () => {
+    const built = { root_page_url: `${ROOT}/products/${BATCH}/${ctx.p.id}/build_log.md 에 적힌 템플릿 루트 URL`, pages: [], databases: [], summary: '이전 실행에서 노션에 구축됨 — build_log.md 와 qa_report.md 의 이전 라운드 기록 참조' }
+    if (FROM > 3) return { ...ctx, built }
+    const g2only = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작', 'G2 제작 승인', '## 제작팀장 승인',
+      '이 템플릿은 이전 실행에서 노션에 구축됐지만 결재 기록 없이 중단됐다. 지금 처음 결재한다. build_log.md 의 루트와 모든 DB 를 notion-fetch 로 직접 열어 spec·design 대로인지(DB 스키마, 뷰, 샘플 행, 홈 레이아웃, 아이콘 통일, 가이드 토글) 확인한다. qa_report.md 의 이전 검수 라운드도 참고한다. 기록은 build_log.md 끝에.',
+      '노션에서 고치고 build_log.md 의 "## 제작팀장 승인" 바로 위 "## 팀장 요청 수정 내역" 에 남긴다.')
+    return g2only.approved ? { ...ctx, built } : { ...ctx, built, dropped: 'G2 제작팀장 DROP' }
+  })() : hire('maker', ctx.k, ctx.p, '제작',
     `spec.md 와 design.md 대로 노션 작업실 페이지 아래에 템플릿을 실제로 구축한다: 템플릿 루트 페이지(아이콘·커버 포함) → 데이터베이스(속성·옵션·관계) → 뷰 → 샘플 행 → 홈 화면 레이아웃(columns, 링크된 DB 뷰, callout) → "처음 시작하기" 토글 → 하단 "Made by Shrew AI". 만든 뒤 notion-fetch 로 루트와 각 DB를 다시 열어 사양과 맞는지 직접 확인하고, 어긋난 곳은 고친다. 모든 URL과 데이터 소스 ID를 build_log.md 에 기록한다. 끝나면 검수자에게 handoff.`,
     BUILT)
     .then(async b => {
       if (!b) return { ...ctx, built: null }
       const g2 = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작', 'G2 제작 승인', '## 제작팀장 승인',
         `노션 루트(${b.root_page_url})와 모든 DB 를 notion-fetch 로 직접 열어 spec·design 대로 지어졌는지(DB 스키마, 뷰, 샘플 행, 홈 레이아웃, 아이콘 통일, 가이드 토글) 확인한다. 기록은 build_log.md 끝에.`,
-        '노션에서 고치고 build_log.md 를 갱신한다.')
+        '노션에서 고치고 build_log.md 의 "## 제작팀장 승인" 바로 위 "## 팀장 요청 수정 내역" 에 남긴다.')
       return g2.approved ? { ...ctx, built: b } : { ...ctx, built: b, dropped: 'G2 제작팀장 DROP' }
     }),
 
   async ctx => {
     if (ctx.dropped || !ctx.built) return { ...ctx, passed: false, qa: null }
     const qaTask = round => `노션에 지어진 템플릿을 적대적으로 검수한다(라운드 ${round}${FROM > 2 ? ', qa_report.md 에 이전 실행의 라운드가 있으면 그 다음 번호로 이어 적는다' : ''}). 루트: ${ctx.built.root_page_url}. notion-fetch 로 홈, 모든 하위 페이지, 모든 DB(데이터 소스 스키마와 뷰 포함)를 직접 연다. 두 축으로 본다:\n(1) 기능: spec 의 완성 기준·검수 체크리스트, 관계/롤업/수식 동작, 뷰 필터·정렬, 샘플 데이터, 가이드 문구, 깨진 링크·빈 블록·플레이스홀더.\n(2) 미적: 위 미적 기준 항목 하나하나 — 아이콘 통일, 색 절제, 첫 화면 3초 규칙, 속성/뷰 과다, 헤딩 계층, 여백, 다크모드 가독성, 오탈자.\n"돈 받고 팔 수 있다"를 반박하려고 시도하라. blocker/major 가 하나라도 있으면 FAIL, 미적 점수 7 미만이어도 FAIL. 확신이 없으면 FAIL. qa_report.md 에 라운드별로 누적 기록한다.\n제작자 보고: ${JSON.stringify(ctx.built)}`
-    const leadTask = (round, rep) => `G3 품질 판정(라운드 ${round}): 검수자 보고를 읽고 가장 심각한 결함은 notion-fetch 로 직접 다시 확인한 뒤 최종 PASS/FAIL 을 낸다. blocker/major 가 남거나 미적 점수 7 미만이거나 확신이 없으면 FAIL. defects 에는 제작자가 고칠 것만. qa_report.md 끝에 "## 품질팀장 판정" 블록을 남긴다.\n검수자 보고: ${JSON.stringify(rep)}`
+    const leadTask = (round, rep) => `G3 품질 판정(${round === 1 ? '최초' : `재판정 ${round - 1}/${MAX_FIX}`}, 라운드 ${round}): 검수자 보고를 읽고 가장 심각한 결함은 notion-fetch 로 직접 다시 확인한 뒤 최종 PASS/FAIL 을 낸다. blocker/major 가 남거나 미적 점수 7 미만이거나 확신이 없으면 FAIL. defects 에는 제작자가 고칠 것만. qa_report.md 끝에 "## 품질팀장 판정" 블록을 남긴다.\n검수자 보고: ${JSON.stringify(rep)}`
     let round = 1
     let rep = await hire('qa', ctx.k, ctx.p, '검수', qaTask(round), QA)
     let qa = await hire('qa-lead', ctx.k, ctx.p, '검수', leadTask(round, rep), QA)
@@ -219,7 +226,7 @@ const results = await pipeline(
     if (!cfo || !cfo.ok) return { ...ctx, cfo, compliant: false }
     const g4 = await leadGate('marketer-lead', 'marketer', ctx.k, ctx.p, '마케팅·법무', 'G4 판매 승인', '## 사업운영팀장 승인',
       'listing.md 와 compliance.md 를 함께 본다: 플랫폼 규정, 정직성(과장 없음, AI 활용 표시), 라이선스 문안, Notion 상표 사용, 키워드·제목, 가격 근거, 트래커 등록. 기록은 compliance.md 끝에.',
-      'listing.md 와 compliance.md 를 고친다.')
+      'listing.md 와 compliance.md 를 고치고 compliance.md 의 "## 팀장 요청 수정 내역" 에 남긴다.')
     return { ...ctx, cfo, compliant: g4.approved }
   },
 
