@@ -22,6 +22,10 @@ const BATCH = A.batch || 'batch-001'
 const COUNT = A.count || 3
 const MAX_FIX = A.maxFixRounds === undefined ? 2 : A.maxFixRounds
 const OFFSET = A.staffOffset || 0          // 다른 배치와 동시에 돌 때 팀원 번호가 겹치지 않게 (예: 3 → maker-4 부터)
+// 이어서 하기: 이미 만든 산출물이 있을 때 그 단계부터. 'make' | 'qa' | 'ops' | 'ship' (없으면 처음부터)
+const STAGES = ['plan', 'make', 'qa', 'ops', 'ship']
+const FROM = Math.max(0, STAGES.indexOf(A.resumeFrom || 'plan'))
+const SKIP_KICKOFF = !!A.skipKickoff          // true 면 G0 를 건너뛰고 기존 BATCH_BRIEF.md 를 따른다
 const MEMBER = 'sonnet'
 const LEAD = 'opus'
 const LEADS = { ceo: 1, 'pm-lead': 1, 'maker-lead': 1, 'qa-lead': 1, 'marketer-lead': 1 }
@@ -166,6 +170,12 @@ if (!briefs.length) {
   ideasJson = JSON.stringify(scans)
 }
 
+let products
+let kickoff = null
+if (SKIP_KICKOFF) {
+  products = briefs.map(b => ({ ...b, ceo_notes: `이 배치는 이미 킥오프됐다. ${ROOT}/products/${BATCH}/BATCH_BRIEF.md 의 CEO 지시를 따른다.` }))
+  log(`G0 생략: ${BATCH} 기존 브리프로 ${STAGES[FROM]} 단계부터 이어서 진행 (${products.length}개)`)
+} else {
 const pmReview = await hire('pm-lead', 0, null, '대표실',
   briefs.length
     ? `G0 사전 검토: 아래 브리프마다 수요 근거, 기존 상품과의 중복, 한 배치 안에 만들 수 있는 범위, 규정 위험을 보고 GO/CHANGE/DROP 을 권고한다(notes 에 이유와 바꿀 점).\n브리프:\n${JSON.stringify(briefs, null, 1)}`
@@ -173,16 +183,17 @@ const pmReview = await hire('pm-lead', 0, null, '대표실',
   LEAD_REVIEW)
 if (!briefs.length) briefs = (pmReview && pmReview.new_briefs) || []
 
-const kickoff = await hire('ceo', 0, null, '대표실',
+kickoff = await hire('ceo', 0, null, '대표실',
   `G0 킥오프: 이번 배치(${BATCH})에서 만들 상품을 승인/반려한다. 기획팀장 권고를 근거로 하되 최종 결정은 너다. 승인한 상품마다 팀에게 줄 지시(notes_for_team: 차별점, 반드시 넣을 것, 빼야 할 것)를 적는다. ${ROOT}/products/${BATCH}/BATCH_BRIEF.md 를 작성한다(배치 목표, 상품 목록, 팀별 담당, 관문 일정, 품질 기준).\n브리프:\n${JSON.stringify(briefs, null, 1)}\n기획팀장 권고:\n${JSON.stringify(pmReview)}`,
   KICKOFF)
 
 if (!kickoff) { log('CEO 킥오프 실패 — 중단'); return { batch: BATCH, error: 'kickoff failed' } }
 const notesById = {}
 kickoff.approved.forEach(a => { notesById[a.id] = a.notes_for_team })
-const products = briefs.filter(b => notesById[b.id] !== undefined).map(b => ({ ...b, ceo_notes: notesById[b.id] }))
+products = briefs.filter(b => notesById[b.id] !== undefined).map(b => ({ ...b, ceo_notes: notesById[b.id] }))
 log(`배치 목표: ${kickoff.batch_goal} — 승인 ${products.length}개, 반려 ${kickoff.rejected.length}개`)
 if (!products.length) return { batch: BATCH, kickoff, results: [] }
+}
 
 const hold = (ctx, why) => ({ ...ctx, dropped: why })
 
@@ -192,6 +203,7 @@ const results = await pipeline(
 
   // 기획팀: 기획자 → G1 기획팀장
   async (_, p, k) => {
+    if (FROM > 0) return { p, k }                 // 이어서 하기: 사양은 이미 있다
     await hire('pm', k, p, '기획팀',
       `상품 사양서 spec.md 를 작성한다: 목표 구매자와 그들의 문제, 수요 근거(측정/추론 구분), 구성(목차/시트/기능 목록), 각 파일별 상세 요구사항, 완성 기준(Definition of Done), 검수 체크리스트, 경쟁 대비 차별점, 금지 문구, 하지 말아야 할 것. CEO 지시: ${p.ceo_notes}. 끝나면 기획팀장에게 handoff 이벤트를 남긴다.`)
     const g1 = await leadGate('pm-lead', 'pm', k, p, '기획팀', 'G1 사양 승인', '## 기획팀장 승인',
@@ -202,11 +214,11 @@ const results = await pipeline(
 
   // 제작팀: 디자이너 → 제작자 → G2 제작팀장
   async ctx => {
-    if (ctx.dropped) return ctx
-    await hire('designer', ctx.k, ctx.p, '제작팀',
+    if (ctx.dropped || FROM > 1) return ctx
+    if (FROM < 1) await hire('designer', ctx.k, ctx.p, '제작팀',
       `spec.md 를 읽고 design.md 를 작성한다: 정보 구조, 레이아웃, 서체/색/아이콘 규칙, 각 산출물 파일의 화면/페이지 구성, 썸네일·대표 이미지 브리프(문구, 구도, 색). 썸네일은 오너 결정에 따라 Claude Design 캔버스에서 따로 만들므로, 브리프는 Shrew AI Company 디자인 시스템(docs/91_외부_연동.md 의 아티팩트 링크) 토큰 이름으로 쓰고 크몽 썸네일 규격(652×488)을 기준으로 한다. spec 에 모순·누락이 있으면 spec.md 끝에 "## 디자이너 코멘트"로 남기고 design.md 에서는 합리적으로 해결한다. 끝나면 제작자에게 handoff.`)
     const made = await hire('maker', ctx.k, ctx.p, '제작팀',
-      `spec.md 와 design.md 대로 실제 판매 산출물 파일을 모두 만든다(브리프의 deliverables 포함). 문서는 완성된 본문이어야 하며 플레이스홀더·"추후 작성" 금지. 템플릿/코드는 실제로 열리고 동작해야 한다 — 만든 뒤 직접 열어보거나 실행해 확인한다(예: openpyxl 로 다시 로드, python 실행, HTML 은 구조 확인). 확인 과정은 build_notes.md 에 남긴다. 썸네일 이미지는 만들지 않는다(Claude Design 캔버스에서 따로 제작). 끝나면 제작팀장에게 handoff.`,
+      `spec.md 와 design.md 대로 실제 판매 산출물 파일을 모두 만든다(브리프의 deliverables 포함). 문서는 완성된 본문이어야 하며 플레이스홀더·"추후 작성" 금지. 템플릿/코드는 실제로 열리고 동작해야 한다 — 만든 뒤 직접 열어보거나 실행해 확인한다(예: openpyxl 로 다시 로드, python 실행, HTML 은 구조 확인). 확인 과정은 build_notes.md 에 남긴다. 썸네일 이미지는 만들지 않는다(Claude Design 캔버스에서 따로 제작).${FROM === 1 ? ' 이 상품은 이전 작업이 중간에 끊겼다: 폴더에 이미 있는 파일·빌드 스크립트를 먼저 살펴보고, 쓸 수 있는 것은 살려서 이어서 완성한다(처음부터 다시 만들지 않는다).' : ''} 끝나면 제작팀장에게 handoff.`,
       MADE)
     const g2 = await leadGate('maker-lead', 'maker', ctx.k, ctx.p, '제작팀', 'G2 제작 승인', '## 제작팀장 승인',
       `산출물을 직접 열어/실행해 spec·design 과 맞는지, 파일 위생(매크로·외부 링크·개인정보·절대경로 없음), 사용 설명이 실제 파일과 맞는지 확인한다. 기록은 build_notes.md 끝에.\n제작자 보고: ${JSON.stringify(made)}`,
@@ -217,6 +229,7 @@ const results = await pipeline(
   // 품질팀: 검수자 → G3 품질팀장 (FAIL 이면 제작자 수정 → 재검수 → 재판정)
   async ctx => {
     if (ctx.dropped) return ctx
+    if (FROM > 2) return { ...ctx, qa: { verdict: 'PASS', score_0_10: null, defects: [], summary: `기존 ${ROOT}/products/${BATCH}/${ctx.p.id}/qa_report.md 의 품질팀장 판정 참조` } }
     const memberTask = round => `상품 폴더의 산출물을 적대적으로 검수한다(라운드 ${round}). "이대로 돈 받고 팔 수 있다"를 반박하려고 시도하라. spec.md 의 완성 기준과 검수 체크리스트를 하나씩 확인하고, 파일을 실제로 열거나 실행해 본다. 내용 오류, 빈약한 분량, 플레이스홀더, 깨진 수식/링크, 맞춤법, 저작권 의심, 과장 표현을 찾는다. 확신이 없으면 FAIL. qa_report.md 에 라운드별로 누적 기록한다. 네 판정은 의견이고 최종 판정은 품질팀장이 한다.`
     const leadTask = (round, rep) => `G3 품질 판정(라운드 ${round}): 검수자 보고를 읽고, 가장 심각한 결함은 직접 다시 확인한 뒤 최종 PASS/FAIL 을 낸다. blocker/major 가 남아 있거나 확신이 없으면 FAIL. defects 에는 제작자가 고칠 것만 남긴다. qa_report.md 끝에 "## 품질팀장 판정" 블록(라운드, 판정, 이유)을 남긴다.\n검수자 보고: ${JSON.stringify(rep)}`
     let round = 1
@@ -237,7 +250,7 @@ const results = await pipeline(
 
   // 사업운영팀: 마케터 → 재무·법무 → G4 사업운영팀장
   async ctx => {
-    if (ctx.dropped) return ctx
+    if (ctx.dropped || FROM > 3) return ctx
     await hire('marketer', ctx.k, ctx.p, '사업운영팀',
       `listing.md 를 작성한다: 플랫폼(${ctx.p.target_platform}) 규격에 맞는 상품명(여러 안), 한 줄 소개, 상세 설명, 구성/스펙, 대상/비대상, FAQ, 검색 키워드/태그(최신 수요조사 반영), 가격 제안과 근거(경쟁가 비교), 썸네일 문구. 과장·수익 보장 금지, AI 활용 사실을 플랫폼 규정에 맞게 표시. 끝나면 재무·법무에게 handoff.`)
     await hire('cfo', ctx.k, ctx.p, '사업운영팀',
@@ -266,6 +279,6 @@ const done = results.filter(Boolean)
 const shipped = done.filter(r => r.decision === 'SHIP')
 log(`출고 ${shipped.length} / 보류 ${done.length - shipped.length}`)
 const report = await hire('ceo', 0, null, '출고 판정',
-  `배치 보고서 ${ROOT}/products/${BATCH}/BATCH_REPORT.md 를 작성한다: 배치 목표 대비 결과, 상품별 판정(SHIP/HOLD)과 이유, 관문별 결과(G1~G4 팀장 결정), 검수 점수, 오너가 지금 해야 할 일(승인 대기 목록과 순서), 다음 배치 제안 3개. 마지막에 ${PY} "${ROOT}/scripts/office.py" status ceo idle "배치 ${BATCH} 마감" 을 실행한다.\n배치 목표: ${kickoff.batch_goal}\n결과:\n${JSON.stringify(done, null, 1)}`)
+  `배치 보고서 ${ROOT}/products/${BATCH}/BATCH_REPORT.md 를 작성한다: 배치 목표 대비 결과, 상품별 판정(SHIP/HOLD)과 이유, 관문별 결과(G1~G4 팀장 결정), 검수 점수, 오너가 지금 해야 할 일(승인 대기 목록과 순서), 다음 배치 제안 3개. 마지막에 ${PY} "${ROOT}/scripts/office.py" status ceo idle "배치 ${BATCH} 마감" 을 실행한다.\n배치 목표: ${kickoff ? kickoff.batch_goal : '(기존 BATCH_BRIEF.md 참조)'}\n결과:\n${JSON.stringify(done, null, 1)}`)
 
-return { batch: BATCH, goal: kickoff.batch_goal, rejected: kickoff.rejected, results: done, report }
+return { batch: BATCH, goal: kickoff ? kickoff.batch_goal : null, rejected: kickoff ? kickoff.rejected : [], results: done, report }
