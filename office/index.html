@@ -332,8 +332,18 @@ const TABLES = {
   market:  { cx: 420, cy: 102, rx: 12, ry: 6,  top: '#d9a56a', rim: '#9a6236' },
   finance: { cx: 410, cy: 192, rx: 14, ry: 7,  top: '#cfd6e2', rim: '#7e889a' },
   coding:  { cx: 272, cy: 300, rx: 12, ry: 6,  top: '#d9a56a', rim: '#9a6236' },
-  testing: { cx: 372, cy: 286, rx: 28, ry: 14, top: '#d4e8ee', rim: '#7da3b3', main: true },
+  testing: { cx: 372, cy: 300, rx: 28, ry: 14, top: '#d4e8ee', rim: '#7da3b3', main: true },
 };
+/* 팀장석: "<역할>-lead"(Opus 팀장)만 앉는 전용 자리 — 방마다 1개, 팀원 책상 격자(DESKS)와 별개.
+   x,y = 팀장 발(좌석) 위치. 책상은 가로 40px(x-20 ~ x+20), 모니터는 오른쪽, 의자(등받이 꼭대기 y-28)는 책상 뒤.
+   팀장이 자리에 없어도(회의·퇴근) 빈 의자와 책상이 항상 그려진다. col = 명패 끝 장식(역할 색). */
+const LEAD_SEATS = {
+  design:  { x: 126, y: 160, col: '#5aa9e6' },     // 기획팀장 — 원탁 위쪽. 문(x 60~86) 오른쪽에 좁은 화이트보드(87~104), 책상 106~146
+  coding:  { x: 274, y: 258, col: '#f09a4a' },     // 제작팀장 — 원탁 위쪽, 책상 8번(234)의 모니터와 2px 띄움 (책상 254~294)
+  testing: { x: 372, y: 250, col: '#e86a6a' },     // 품질팀장 — 검수 원탁 위쪽 (체크리스트판을 오른쪽으로, 원탁·러그를 14px 아래로 옮겨 자리를 만들었다)
+  market:  { x: 394, y: 70,  col: '#a98be8' },     // 사업운영팀장 — 마케터 책상과 원탁 사이 위쪽 (팀원 말풍선이 명패를 가리지 않는 자리)
+};
+const LEAD_IDX = -1;                                // 팀장석의 좌석 번호. 팀원 책상은 0 이상이라 겹치지 않는다
 const CEO_STAND = [[200, 128], [248, 128], [178, 146], [270, 146], [200, 168], [248, 168]];
 const WINDOWS = [{ x: 112, y: 5, w: 22, h: 19 }, { x: 166, y: 5, w: 22, h: 19 }, { x: 260, y: 5, w: 22, h: 19 }, { x: 418, y: 5, w: 22, h: 19 }];
 
@@ -433,6 +443,12 @@ function roomOf(a) { const k = roleKeyOf(a); return k ? ROLES[k].room : 'ceo'; }
 /* 팀장(Opus): ID 가 "<역할>-lead" (docs/11_팀_체계.md). 방은 앞부분 역할로 정해지고 직함만 팀장으로 바꾼다 */
 const LEAD_TITLES = { pm: '기획팀장', maker: '제작팀장', qa: '품질팀장', marketer: '사업운영팀장' };
 function leadTitle(id) { const m = /^([a-z]+)-lead$/.exec(str(id).trim().toLowerCase()); return m ? (LEAD_TITLES[m[1]] || '팀장') : ''; }
+/* 팀장석을 쓰는 팀장인가: ID 가 "-lead" 이고, 그 방에 팀장석이 정의돼 있을 때만 (알 수 없는 역할의 -lead 는 기존대로) */
+function leadRoomOf(a) {
+  if (!leadTitle(a && a.id)) return '';
+  const room = roomOf(a);
+  return own(LEAD_SEATS, room) ? room : '';
+}
 function roleTitle(a) { const lt = leadTitle(a && a.id); if (lt) return lt; const k = roleKeyOf(a); return k ? ROLES[k].ko : (str(a && a.role) || '직원'); }
 function normState(s) { s = str(s).trim().toLowerCase(); return own(STATES, s) ? s : 'idle'; }
 function cmpAgent(a, b) {
@@ -587,6 +603,7 @@ function clampToRoom(roomId, p) {
 /* roomId 의 idx 번째 좌석. 모자라면 방 안에 자동 생성 (순수 함수) */
 function seatFor(roomId, idx) {
   if (!ROOMS[roomId]) roomId = 'ceo';
+  if (idx === LEAD_IDX && own(LEAD_SEATS, roomId)) return { room: roomId, idx: LEAD_IDX, kind: 'lead', x: LEAD_SEATS[roomId].x, y: LEAD_SEATS[roomId].y, sit: true };
   idx = Math.max(0, idx | 0);
   if (roomId === 'testing') {
     const p = clampToRoom(roomId, tableSeatPos(TABLES.testing, idx, true));
@@ -611,14 +628,19 @@ function meetSeat(roomId, k) {
 function allocateSeats(list, prev) {
   const used = {}, out = new Map();
   const setOf = (r) => used[r] || (used[r] = new Set());
+  for (const a of [...list].sort(cmpAgent)) {               // 팀장석 먼저 (방마다 1명, 이미 차 있으면 아래에서 서 있는 자리로)
+    const lr = leadRoomOf(a);
+    if (lr && !setOf(lr).has(LEAD_IDX)) { setOf(lr).add(LEAD_IDX); out.set(a.id, { room: lr, idx: LEAD_IDX }); }
+  }
   for (const a of list) {
+    if (out.has(a.id)) continue;
     const room = roomOf(a), p = prev && prev.get(a.id);
-    if (p && p.room === room && !setOf(room).has(p.idx)) { setOf(room).add(p.idx); out.set(a.id, { room, idx: p.idx }); }
+    if (p && p.room === room && p.idx >= 0 && !setOf(room).has(p.idx)) { setOf(room).add(p.idx); out.set(a.id, { room, idx: p.idx }); }   // idx>=0: 팀원은 팀장석(-1)을 물려받지 않는다
   }
   const rest = list.filter((a) => !out.has(a.id)).sort(cmpAgent);
   for (const a of rest) {
     const room = roomOf(a), set = setOf(room);
-    let i = roleKeyOf(a) ? 0 : deskCap(room);              // 알 수 없는 역할(intern-1 등)은 남의 책상(대표 책상 등)에 앉히지 않고 서 있는 자리부터
+    let i = roleKeyOf(a) && !leadTitle(a.id) ? 0 : deskCap(room);   // 알 수 없는 역할(intern-1 등)과, 팀장석을 못 받은 중복 팀장은 남의 책상에 앉히지 않고 서 있는 자리부터
     while (set.has(i)) i++;
     set.add(i); out.set(a.id, { room, idx: i });
   }
@@ -670,7 +692,7 @@ function drawRugs(g) {
   rugRect(g, 304, 98, 96, 24, '#a24d70', '#c4668c', '#e8a0bc'); rugRound(g, 420, 104, 22, 12, '#a24d70', '#c4668c', '#e8a0bc');
   rugRect(g, 304, 182, 90, 24, '#5d6676', '#8b93a3', '#b4bccb'); rugRound(g, 410, 195, 24, 12, '#5d6676', '#8b93a3', '#b4bccb');
   rugRect(g, 8, 246, 250, 84, '#34508a', '#456bad', '#6c92cf'); rugRound(g, 272, 304, 22, 12, '#34508a', '#456bad', '#6c92cf');
-  rugRound(g, 372, 291, 54, 34, '#3f8f86', '#6fc3b4', '#9fe0d1');
+  rugRound(g, 372, 305, 54, 34, '#3f8f86', '#6fc3b4', '#9fe0d1');
 }
 
 function drawTopWall(g) {
@@ -733,12 +755,20 @@ function drawCooler(g, x, yb) {
   R(g, x + 2, yb - 27, 8, 13, '#9fd8f2'); R(g, x + 2, yb - 27, 8, 2, '#c8ecfa'); R(g, x + 3, yb - 24, 1, 8, '#e8f8ff'); R(g, x + 4, yb - 29, 4, 2, '#9fd8f2');
   R(g, x, yb, 12, 1, 'rgba(0,0,0,.25)');
 }
-function drawWhiteboard(g, x, y) {
-  R(g, x + 4, y + 26, 2, 7, '#7d8492'); R(g, x + 38, y + 26, 2, 7, '#7d8492'); R(g, x + 2, y + 32, 6, 1, 'rgba(0,0,0,.25)'); R(g, x + 36, y + 32, 6, 1, 'rgba(0,0,0,.25)');
-  R(g, x, y, 44, 26, '#c9d0da'); R(g, x + 2, y + 2, 40, 20, '#fbfbf6'); R(g, x + 2, y + 22, 40, 2, '#aeb6c4');
-  R(g, x + 5, y + 5, 9, 6, '#8cc3ec'); R(g, x + 17, y + 5, 9, 6, '#f4c26b'); R(g, x + 30, y + 5, 9, 6, '#9ad49a');
-  R(g, x + 14, y + 8, 3, 1, '#444'); R(g, x + 26, y + 8, 4, 1, '#444');
-  R(g, x + 5, y + 14, 18, 1, '#e86a6a'); R(g, x + 5, y + 17, 25, 1, '#5aa9e6'); R(g, x + 32, y + 14, 6, 5, '#ffe27a'); R(g, x + 34, y + 16, 2, 1, '#c9a227');
+function drawWhiteboard(g, x, y, w) {                  // w: 44(기본) 또는 그보다 좁게(기획·디자인방은 팀장석 자리를 내주려고 18)
+  w = w || 44;
+  R(g, x + 4, y + 26, 2, 7, '#7d8492'); R(g, x + w - 6, y + 26, 2, 7, '#7d8492'); R(g, x + 2, y + 32, 6, 1, 'rgba(0,0,0,.25)'); R(g, x + w - 8, y + 32, 6, 1, 'rgba(0,0,0,.25)');
+  R(g, x, y, w, 26, '#c9d0da'); R(g, x + 2, y + 2, w - 4, 20, '#fbfbf6'); R(g, x + 2, y + 22, w - 4, 2, '#aeb6c4');
+  if (w >= 40) {
+    R(g, x + 5, y + 5, 9, 6, '#8cc3ec'); R(g, x + 17, y + 5, 9, 6, '#f4c26b'); R(g, x + 30, y + 5, 9, 6, '#9ad49a');
+    R(g, x + 14, y + 8, 3, 1, '#444'); R(g, x + 26, y + 8, 4, 1, '#444');
+    R(g, x + 5, y + 14, 18, 1, '#e86a6a'); R(g, x + 5, y + 17, 25, 1, '#5aa9e6'); R(g, x + 32, y + 14, 6, 5, '#ffe27a'); R(g, x + 34, y + 16, 2, 1, '#c9a227');
+  } else {                                             // 좁은 보드: 메모 2장 + 연결선, 줄 2개, 포스트잇 1장 (모두 w 안쪽에 맞춘다)
+    const nw = Math.max(3, (w - 10) >> 1);
+    R(g, x + 3, y + 4, nw, 5, '#8cc3ec'); R(g, x + w - 3 - nw, y + 4, nw, 5, '#f4c26b'); R(g, x + 3 + nw, y + 6, w - 6 - nw * 2, 1, '#444');
+    R(g, x + 3, y + 12, w - 6, 1, '#e86a6a'); R(g, x + 3, y + 15, w - 11, 1, '#5aa9e6'); R(g, x + 3, y + 18, w - 13, 1, '#9ad49a');
+    R(g, x + w - 7, y + 14, 4, 4, '#ffe27a'); R(g, x + w - 6, y + 16, 2, 1, '#c9a227');
+  }
 }
 function drawKanban(g, x, y) {
   R(g, x + 4, y + 20, 2, 6, '#7d8492'); R(g, x + 78, y + 20, 2, 6, '#7d8492');
@@ -820,11 +850,12 @@ function drawScene(g) {
   drawWallsAndFrame(g);
   drawPlant(g, 100, 54); drawPlant(g, 286, 60); drawPlant(g, 438, 116); drawPlant(g, 436, 206);
   drawCooler(g, 159, 200); drawPlant(g, 286, 202);
-  drawWhiteboard(g, 98, 135);
+  drawWhiteboard(g, 87, 135, 18);                  // 기획팀장석(책상 x 106~146) 때문에 44→18px 로 좁힘. 위쪽 문(x 60~86)을 막지 않게 87 부터
   drawCabinet(g, 360, 164); drawCabinet(g, 376, 164); drawSafe(g, 412, 164);
   drawKanban(g, 108, 219);
   drawPrinter(g, 176, 342); drawCan(g, 214, 342); drawPlant(g, 12, 342); drawPlant(g, 286, 342);
-  drawChecklist(g, 368, 220); drawPlant(g, 312, 342); drawPlant(g, 436, 342);
+  drawChecklist(g, 396, 220);                      // 품질팀장석(책상 x 352~392) 때문에 368→396 으로 옮김
+  drawPlant(g, 312, 342); drawPlant(g, 436, 342);
   ROOM_IDS.forEach((rid) => drawSign(g, rid));
 }
 
@@ -890,11 +921,54 @@ function drawDeskUnit(g, s, D, ac, t) {
     blit(g, bake('desk0', 34, 28, (b) => deskBody(b, 12, 18, false)), s.x - 12, s.y - 18, 34, 28);
     drawScreen(g, s.x + 8, s.y - 15, 9, 7, mode, t, seed);
   }
+  drawDeskHands(g, s, ac, t);
+}
+function drawDeskHands(g, s, ac, t) {               // 키보드 위 손 (작업 중이면 번갈아 타이핑). 팀원 책상·팀장석 공용
   if (ac && ac.atDesk && (ac.state === 'working' || ac.state === 'idle' || ac.state === 'blocked')) {
     const typing = ac.state === 'working', f = typing ? (Math.floor(t * 9 + ac.pal.phase) & 1) : 0;
     R(g, s.x - 5, s.y - 7, 2, 3, ac.pal.shirtD); R(g, s.x - 5, s.y - 4 + f, 2, 2, ac.pal.skin);
     R(g, s.x + 3, s.y - 7, 2, 3, ac.pal.shirtD); R(g, s.x + 3, s.y - 4 + (1 - f), 2, 2, ac.pal.skin);
   }
+}
+/* ---- 팀장석: 짙은 월넛 책상(40px) + 놋쇠 명패 + 뱅커스 램프 + 등받이 높은 버건디 가죽 의자 ---- */
+function leadChairBody(g, ox, oy) {                  // (ox,oy) = 좌석(팀장 발) 위치. 책상 뒤에 그려진다
+  const leather = '#7b2d3b', hi = '#a8485a', dark = '#561d29', gold = '#e8c860';
+  // 등받이 꼭대기 y-28: 앉은 팀장 머리(y-21~-24)보다 4~7px 높아 앉아 있어도 금박 단추 줄이 보인다 (팀원 의자 꼭대기는 y-13)
+  R(g, ox - 6, oy - 28, 12, 1, leather);                                 // 둥근 윗면
+  R(g, ox - 8, oy - 27, 16, 25, leather); R(g, ox - 8, oy - 27, 16, 1, hi); R(g, ox + 7, oy - 26, 1, 24, dark);
+  R(g, ox - 6, oy - 23, 12, 17, '#923a4b'); R(g, ox - 6, oy - 23, 1, 17, hi);       // 누빈 속판
+  for (const sx of [-5, -2, 1, 4]) R(g, ox + sx, oy - 25, 1, 1, gold);                // 금박 단추
+  for (const sy of [-19, -14]) for (const sx of [-3, 2]) R(g, ox + sx, oy + sy, 1, 1, dark);   // 누빔 자국
+  R(g, ox - 10, oy - 9, 3, 8, dark); R(g, ox - 10, oy - 9, 3, 1, hi);                 // 팔걸이
+  R(g, ox + 7, oy - 9, 3, 8, dark); R(g, ox + 7, oy - 9, 3, 1, hi);
+}
+function leadDeskBody(g, ox, oy, accent) {
+  const w = 40, x0 = ox - 20, brass = '#d9b04a';
+  R(g, x0 + 1, oy + 5, w, 3, 'rgba(0,0,0,.24)');
+  R(g, x0, oy - 7, w, 6, '#6b4226'); R(g, x0, oy - 7, w, 1, '#94603a');                                              // 상판 (짙은 월넛) — 높이는 팀원 책상과 같다
+  R(g, x0, oy - 1, w, 6, '#4a2b17'); R(g, x0, oy - 1, w, 1, '#341e0f'); R(g, x0, oy + 4, w, 1, '#2b170a');          // 앞판
+  R(g, x0 + 2, oy + 1, 1, 3, '#5e3a20'); R(g, x0 + w - 3, oy + 1, 1, 3, '#5e3a20');
+  R(g, x0 + 4, oy + 2, 5, 1, brass); R(g, x0 + w - 9, oy + 2, 5, 1, brass);                                          // 서랍 손잡이
+  R(g, ox - 9, oy - 7, 18, 6, '#2b3a33'); R(g, ox - 9, oy - 7, 18, 1, '#456457');                                    // 가죽 블로터
+  R(g, ox - 4, oy - 4, 8, 2, '#cfd3dc'); R(g, ox - 4, oy - 4, 8, 1, '#eceff5'); R(g, ox + 5, oy - 4, 2, 2, '#cfd3dc');  // 키보드·마우스
+  R(g, ox - 7, oy, 14, 4, '#2b170a'); R(g, ox - 6, oy, 12, 3, brass); R(g, ox - 6, oy, 12, 1, '#fbe596'); R(g, ox - 6, oy + 2, 12, 1, '#a8831f');   // 놋쇠 명패
+  for (const px of [-4, -2, 0, 2]) R(g, ox + px, oy + 1, 1, 1, '#6b4d10');                                           // 명패 글자(점)
+  R(g, ox - 8, oy + 1, 1, 2, accent); R(g, ox + 7, oy + 1, 1, 2, accent);                                            // 명패 양끝 장식 = 역할 색
+  monitorFrame(g, ox + 7, oy - 18, 13);                                                                              // 모니터 (화면은 동적)
+  const lx = ox - 17;                                                                                                // 뱅커스 램프
+  R(g, lx, oy - 4, 6, 2, '#b8902f'); R(g, lx, oy - 4, 6, 1, '#e8c860'); R(g, lx + 2, oy - 9, 2, 5, brass);
+  R(g, lx, oy - 15, 6, 1, '#2e8b57'); R(g, lx - 1, oy - 14, 8, 4, '#2e8b57'); R(g, lx, oy - 14, 6, 1, '#5fcf8f'); R(g, lx - 1, oy - 11, 8, 1, '#1f6b3d');
+  R(g, lx - 1, oy - 3, 8, 1, 'rgba(255,240,160,.35)');
+  R(g, ox - 4, oy + 5, 8, 1, '#2f3441'); R(g, ox - 5, oy + 7, 2, 1, '#2f3441'); R(g, ox + 3, oy + 7, 2, 1, '#2f3441');   // 의자 바퀴
+}
+function drawLeadChair(g, s) {
+  blit(g, bake('leadchair', 22, 30, (b) => leadChairBody(b, 11, 28)), s.x - 11, s.y - 28, 22, 30);
+}
+function drawLeadDesk(g, s, L, ac, t) {
+  const seed = hash32(s.room + 'lead') & 255;
+  blit(g, bake('leaddesk_' + s.room, 44, 30, (b) => leadDeskBody(b, 22, 20, L.col)), s.x - 22, s.y - 20, 44, 30);
+  drawScreen(g, s.x + 8, s.y - 17, 11, 7, screenMode(ac), t, seed);
+  drawDeskHands(g, s, ac, t);
 }
 function drawTableUnit(g, rid, t) {
   const T = TABLES[rid], ox = T.rx + 4, oy = T.ry + 4, w = T.rx * 2 + 8, h = T.ry * 2 + 14;
@@ -955,6 +1029,7 @@ function drawSprite(g, x, y, pal, p) {
   R(g, x - 4, by - 14, 8, th, shirt);
   if (pal.acc === 'tie') { R(g, x - 2, by - 14, 4, 4, '#f4efe4'); R(g, x - 1, by - 14, 2, 1, '#c0392b'); R(g, x - 1, by - 13, 2, 5, '#c0392b'); R(g, x - 4, by - 14, 1, th, sleeve); R(g, x + 3, by - 14, 1, th, sleeve); }
   else { R(g, x - 2, by - 14, 4, 1, skin); R(g, x - 3, by - 14, 1, 1, '#ffffff'); R(g, x + 2, by - 14, 1, 1, '#ffffff'); R(g, x + 1, by - 11, 3, 3, pal.roleColor); R(g, x + 1, by - 11, 3, 1, '#ffffff'); R(g, x + 2, by - 13, 1, 2, '#e6e6ee'); }
+  if (p.lead) { R(g, x - 2, by - 14, 4, 1, '#f4efe4'); R(g, x - 1, by - 13, 2, 1, '#f6d98a'); R(g, x - 1, by - 12, 2, 4, '#d9a441'); R(g, x - 1, by - 12, 1, 4, '#f6d98a'); R(g, x - 1, by - 9, 2, 1, '#b8841f'); }   // 팀장 표식: 금색 넥타이 (앉으면 책상 때문에 칼라+매듭만 보인다)
   // 팔
   const arms = p.arms || 'down', up = p.up ? 1 : 0;
   const armDown = (ax) => { R(g, ax, by - 13, 2, 5, sleeve); R(g, ax, by - 8, 2, 2, skin); };
@@ -1034,7 +1109,7 @@ function makeActor(a, seat) {
   const rk = roleKeyOf(a);
   return {
     id: a.id, roleKey: rk, role: a.role, room: seat.room, seatIdx: seat.idx, seat, state: 'idle', task: '', bubble: '', product_id: '', updated_at: '',
-    pal: paletteFor(a.id, rk), x: seat.x, y: seat.y, moving: false, sat: false, atDesk: false, atTable: false, face: 0, meetIdx: -1,
+    pal: paletteFor(a.id, rk), lead: !!leadTitle(a.id), x: seat.x, y: seat.y, moving: false, sat: false, atDesk: false, atTable: false, face: 0, meetIdx: -1,
   };
 }
 function syncActors(agents) {
@@ -1069,12 +1144,12 @@ function updateActor(ac, dt) {
     ac.x += (dx / d) * step; ac.y += (dy / d) * step;
     ac.moving = true; ac.sat = false; ac.atDesk = false; ac.atTable = false; ac.face = dx > 0.5 ? 1 : dx < -0.5 ? -1 : 0;
   } else {
-    ac.x = tg.x; ac.y = tg.y; ac.moving = false; ac.face = 0; ac.sat = !!tg.sit; ac.atDesk = tg.kind === 'desk'; ac.atTable = !!tg.sit && (tg.kind === 'meet' || tg.kind === 'table');
+    ac.x = tg.x; ac.y = tg.y; ac.moving = false; ac.face = 0; ac.sat = !!tg.sit; ac.atDesk = tg.kind === 'desk' || tg.kind === 'lead'; ac.atTable = !!tg.sit && (tg.kind === 'meet' || tg.kind === 'table');
   }
 }
 function drawActor(g, ac, t) {
   const ph = ac.pal.phase, st = ac.state;
-  const p = { sit: ac.sat, walk: ac.moving, step: ac.moving ? (Math.floor(t * 6) & 1) : 0, blink: false, mouth: 0, arms: 'down', up: 0, eyeDx: ac.face, bob: 0, shakeX: 0, red: 0, sweat: false };
+  const p = { lead: ac.lead, sit: ac.sat, walk: ac.moving, step: ac.moving ? (Math.floor(t * 6) & 1) : 0, blink: false, mouth: 0, arms: 'down', up: 0, eyeDx: ac.face, bob: 0, shakeX: 0, red: 0, sweat: false };
   if (ac.moving) p.bob = p.step ? -1 : 0;
   else if (st === 'idle') { p.bob = Math.sin(t * 1.7 + ph) > 0.6 ? -1 : 0; p.blink = ((t + ph) % 3.9) < 0.14; }
   else if (st === 'working') { p.bob = Math.floor(t * 2.2 + ph) % 5 === 0 ? -1 : 0; p.blink = ((t + ph) % 4.4) < 0.12; }
@@ -1136,6 +1211,12 @@ function buildDrawables(t) {
         list.push({ y: s.y - 0.4, fn: (g) => drawChairBack(g, s.x, s.y) });
         list.push({ y: s.y + 0.4, fn: (g) => drawDeskUnit(g, s, D, ac, t) });
       }
+    }
+    const L = own(LEAD_SEATS, rid) ? LEAD_SEATS[rid] : null;
+    if (L) {                                          // 팀장석: 팀장이 없어도 항상 그린다 (빈 의자). 의자 < 팀장 < 책상 순으로 y-정렬
+      const s = seatFor(rid, LEAD_IDX), ac = world.occ.get(rid + ':' + LEAD_IDX) || null;
+      list.push({ y: s.y - 0.4, fn: (g) => drawLeadChair(g, s) });
+      list.push({ y: s.y + 0.4, fn: (g) => drawLeadDesk(g, s, L, ac, t) });
     }
     const T = TABLES[rid];
     list.push({ y: T.cy + T.ry + 1, fn: (g) => drawTableUnit(g, rid, t) });
@@ -1234,7 +1315,7 @@ function normalizeState(raw) {
 
 /* ---- DEMO 시뮬레이터: 같은 모양의 스냅샷을 만들어 낸다 ---- */
 const DEMO_ROSTER = ['ceo', 'researcher-1', 'researcher-2', 'pm-1', 'designer-1', 'designer-2', 'maker-1', 'maker-2', 'maker-3', 'maker-4', 'maker-5', 'maker-6', 'maker-7',
-  'qa-1', 'qa-2', 'qa-3', 'marketer-1', 'cfo-1'];
+  'qa-1', 'qa-2', 'qa-3', 'marketer-1', 'cfo-1', 'pm-lead', 'maker-lead', 'qa-lead', 'marketer-lead'];
 const DEMO_TASKS = {
   ceo: ['이번 배치 목표 결정 중', '상품 브리프 승인 검토', '최종 출고 판정 중', '주간 매출 점검'],
   researcher: ['수요·경쟁 상품 조사 중', '가격대 근거 URL 수집', '키워드 검색량 분석', '경쟁 상품 후기 요약'],
@@ -1244,6 +1325,10 @@ const DEMO_TASKS = {
   qa: ['적대적 검수: 수식 오류 점검', '템플릿 열람 테스트', '결함 보고서 작성', '실행 테스트 재현 중'],
   marketer: ['판매 페이지 문구 작성', '키워드·태그 선정', '가격 근거 정리'],
   cfo: ['장부 기록 정리', '표시광고법 점검', 'AI 표시 문구 검토', '수수료·세무 메모 작성'],
+  'pm-lead': ['G1 기획 게이트: 사양서 검토', '팀원 spec 결재 중', '브리프 우선순위 조정'],           // 팀장은 id 로 먼저 찾는다 (enter 참고)
+  'maker-lead': ['G2 제작 게이트: 산출물 점검', '제작 일정·인력 배분', '팀원 결함 수정 지시'],
+  'qa-lead': ['G3 품질 게이트: 검수 보고서 결재', '출고 기준 재확인', '반려 사유 정리'],
+  'marketer-lead': ['G4 운영 게이트: 판매 문구·가격 결재', '승인 요청 큐 점검', '컴플라이언스 최종 확인'],
 };
 const DEMO_PRODUCTS = [
   ['notion-job-hunt-kit', '노션 취업 준비 템플릿', 9900], ['excel-household-ledger', '엑셀 가계부 자동화 템플릿', 7900], ['prompt-pack-120', '업무용 프롬프트 120선', 12900],
@@ -1273,7 +1358,7 @@ function makeDemo(seed) {
     const role = a.role, prods = ['pm', 'designer', 'maker', 'qa', 'marketer', 'cfo'];
     a.state = st; a.updated_at = iso(now);
     if (st === 'working') {
-      a.task = pick(DEMO_TASKS[role] || ['작업 중']); a.bubble = pick(DEMO_BUBBLES.working);
+      a.task = pick(DEMO_TASKS[a.id] || DEMO_TASKS[role] || ['작업 중']); a.bubble = pick(DEMO_BUBBLES.working);
       a.product_id = prods.indexOf(role) >= 0 && rnd() < 0.7 ? pick(DEMO_PRODUCTS)[0] : '';
       a.until = now + 5000 + rnd() * 9000;
     } else if (st === 'meeting') {
@@ -1303,7 +1388,7 @@ function makeDemo(seed) {
         push(now - 5000, agents[0], 'decision', '이번 배치 목표: 판매용 디지털 상품 4개 제작');
       }
       agents.forEach((a) => { if (now >= a.until) enter(a, wpick(DEMO_NEXT[a.state] || DEMO_NEXT.idle), now, false); });
-      if (now >= nextSale) { const p = pick(DEMO_PRODUCTS); revenue += p[2]; month += p[2]; nextSale = now + 18000 + rnd() * 20000; push(now, agents[0], 'note', '판매 발생: ' + p[1] + ' (' + fmtKRW(p[2]) + ')'); }
+      // DEMO 에서는 가짜 판매·매출을 만들지 않는다 (실제 매출로 오해하게 만들었던 문제, 2026-10-15 오너 지적)
       return {
         now: iso(now),
         agents: agents.map((a) => ({ id: a.id, role: a.role, state: a.state, task: a.task, bubble: a.bubble, product_id: a.product_id, updated_at: a.updated_at })),
@@ -1341,10 +1426,16 @@ function renderKpis(k, nowStr) {
     chips += chip(m.ko + ' ' + n, m.color);
   });
   const d = Date.parse(nowStr), month = (isFinite(d) ? new Date(d) : new Date()).getMonth() + 1;
+  // 서버가 꺼져 DEMO 일 때는 돈 숫자를 아예 보여주지 않는다 (예시 숫자를 실제 매출로 오해하지 않게)
+  const demoMoney = model.mode === 'demo', DEMO_NOTE = '서버 꺼짐 · 실제 아님';
+  const moneyKpi = (label, color, v, sub) => demoMoney
+    ? '<div class="kpi" style="--c:#9aa7bd"><div class="l">' + label + '</div><div class="v">—</div><div class="s">' + DEMO_NOTE + '</div></div>'
+    : '<div class="kpi" style="--c:' + color + '"><div class="l">' + label + '</div><div class="v' + sign(v) + big(fmtKRW(v)) + '">' + esc(fmtKRW(v)) + '</div><div class="s">' + sub + '</div></div>';
   setHTML('kpis', ui.el.kpis,
-    '<div class="kpi" style="--c:#f2c14e"><div class="l">총 매출</div><div class="v' + sign(k.revenue_krw_total) + big(fmtKRW(k.revenue_krw_total)) + '">' + esc(fmtKRW(k.revenue_krw_total)) + '</div><div class="s">누적</div></div>' +
-    '<div class="kpi" style="--c:#4ec3b5"><div class="l">이번 달 매출</div><div class="v' + sign(k.revenue_krw_this_month) + big(fmtKRW(k.revenue_krw_this_month)) + '">' + esc(fmtKRW(k.revenue_krw_this_month)) + '</div><div class="s">' + month + '월</div></div>' +
-    '<div class="kpi" style="--c:' + (net < 0 ? '#e86a6a' : '#6cc070') + '"><div class="l">순이익</div><div class="v ' + (net < 0 ? 'neg' : 'pos') + big(fmtKRW(net)) + '">' + esc(fmtKRW(net)) + '</div><div class="s">지출 ' + esc(fmtKRW(k.expenses_krw_total)) + '</div></div>' +
+    moneyKpi('총 매출', '#f2c14e', k.revenue_krw_total, '누적') +
+    moneyKpi('이번 달 매출', '#4ec3b5', k.revenue_krw_this_month, month + '월') +
+    (demoMoney ? moneyKpi('순이익', '', 0, '') :
+    '<div class="kpi" style="--c:' + (net < 0 ? '#e86a6a' : '#6cc070') + '"><div class="l">순이익</div><div class="v ' + (net < 0 ? 'neg' : 'pos') + big(fmtKRW(net)) + '">' + esc(fmtKRW(net)) + '</div><div class="s">지출 ' + esc(fmtKRW(k.expenses_krw_total)) + '</div></div>') +
     '<div class="kpi" style="--c:#5aa9e6"><div class="l">상품 수</div><div class="v">' + esc(fmtNum(k.products_total)) + '<small>개</small></div><div class="s">판매 중 ' + listed + '</div></div>' +
     '<div class="kpi wide" style="--c:#5aa9e6"><div class="l">상품 상태별</div>' + (seg ? '<div class="seg">' + seg + '</div><div class="chips">' + chips + '</div>' : '<div class="none">아직 등록된 상품이 없습니다.</div>') + '</div>');
 }
@@ -1976,7 +2067,7 @@ function boot() {
 /* 테스트용 노출 (브라우저에서는 window.__OFFICE__) */
 const OFFICE_API = {
   LW, LH, ROLES, STATES, ROOMS, DESKS, TABLES, hash32, mulberry32, paletteFor, fmtKRW, fmtNum, relTime, hhmm, esc, prefixOf, roleKeyOf, roomOf, normState, cmpAgent,
-  seatFor, meetSeat, tableSeatPos, allocateSeats, deskCap, normalizeState, makeDemo, mixHex, bubbleOf, world, model, ui, syncActors, updateActor, render, applySnapshot, pollOnce,
+  LEAD_SEATS, LEAD_IDX, leadRoomOf, seatFor, meetSeat, tableSeatPos, allocateSeats, deskCap, normalizeState, makeDemo, mixHex, bubbleOf, world, model, ui, syncActors, updateActor, render, applySnapshot, pollOnce,
   fitCanvas, hitTest, buildDrawables, drawScene, boot, getS: () => S,
   chat, chatRich, chatSend, chatToolLabel,
 };

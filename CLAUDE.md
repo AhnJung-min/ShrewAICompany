@@ -43,6 +43,11 @@ GitHub: https://github.com/AhnJung-min/ShrewAICompany (**public** — 회사 시
 - `office/status/`, `office/events.jsonl` 은 런타임 상태라 커밋하지 않는다(.gitignore).
 - 비밀값(API 키·토큰)은 절대 커밋하지 않는다.
 
+## 오너 PC 보호 (2026-10-15 사고 후)
+- 브라우저·앱 프로세스를 **이름으로 일괄 종료하지 않는다** (`taskkill /IM msedge.exe`, `Stop-Process -Name msedge` 등 금지). 오너의 탭과 오피스 앱 창까지 닫힌다. 자기가 띄운 프로세스만 **프로세스 ID** 로 종료한다.
+- 헤드리스 브라우저는 항상 전용 임시 `--user-data-dir` 로 띄우고, 끝나면 그 PID 만 정리한다.
+- 오피스 상태(`office/status`)는 `office.py` 로만 바꾸고, 진짜 상태 폴더에서 `reset` 하지 않는다(테스트는 임시 `AIRE_ROOT`).
+
 ## 코드 규약
 - 시스템 스크립트(`scripts/`)는 Python 3.12 표준 라이브러리만. 상품 제작에는 python-docx, openpyxl, Pillow, matplotlib, pandas 사용 가능.
 - CSV는 UTF-8 BOM, 시간은 KST ISO-8601. 테스트: `python -m unittest discover -s tests -v`
